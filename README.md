@@ -3,5 +3,5 @@ LinuxQuest is the hands-on Linux tutorial that actually builds muscle memory. Ma
 
 
 Main sources of inspiration:
-- Gamification as a static webapp like in: https://www.vim-hero.com
+- Gameification as a static webapp like in: https://www.vim-hero.com
 - Main commands from: https://github.com/RehanSaeed/Bash-Cheat-Sheet?tab=MIT-1-ov-file
