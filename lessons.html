@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lessons — linux-quest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            terminal: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+
+  <!-- ── Top navbar ─────────────────────────────────────────────────────── -->
+  <nav class="flex-shrink-0 flex items-center gap-3 border-b border-slate-800 px-5 py-3">
+    <a href="index.html" class="text-green-400 font-bold font-terminal text-base hover:text-green-300 transition-colors">
+      linux-quest
+    </a>
+    <span class="text-slate-700">/</span>
+    <span id="section-title" class="text-slate-500 text-sm truncate">Navigating Directories</span>
+  </nav>
+
+  <!-- ── Layout: sidebar + main ─────────────────────────────────────────── -->
+  <div class="flex flex-1 min-h-0">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+    <aside class="w-64 flex-shrink-0 border-r border-slate-800 overflow-y-auto py-3 px-2 hidden md:block">
+      <div id="sidebar-sections"></div>
+    </aside>
+
+    <!-- ── Main content ─────────────────────────────────────────────────── -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+      <!-- Lesson header: title + concept -->
+      <div class="flex-shrink-0 border-b border-slate-800 px-6 py-4">
+        <h1 id="lesson-title" class="text-base font-semibold text-slate-100 leading-tight"></h1>
+        <p id="lesson-concept" class="text-slate-500 text-sm mt-1 leading-relaxed italic"></p>
+      </div>
+
+      <!-- Challenge panel: nav + explanation + instruction -->
+      <div class="flex-shrink-0 border-b border-slate-800">
+
+        <!-- Navigation row -->
+        <div class="flex items-center gap-2 px-4 py-2 bg-slate-900/70 border-b border-slate-800/60">
+          <button id="prev-btn"
+            class="font-terminal text-xs text-slate-400 hover:text-slate-200 px-3 py-1 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400">
+            ◀ Prev
+          </button>
+          <span id="challenge-progress" class="flex-1 text-center text-xs font-terminal text-slate-500 select-none"></span>
+          <button id="next-btn"
+            class="font-terminal text-xs text-slate-400 hover:text-slate-200 px-3 py-1 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400">
+            Next ▶
+          </button>
+        </div>
+
+        <!-- Explanation: learn section -->
+        <div class="px-6 py-4 border-b border-slate-800/60 bg-slate-900/10">
+          <div class="text-xs font-terminal text-slate-600 uppercase tracking-wider mb-2">📖 Learn</div>
+          <p id="challenge-explanation"
+             class="text-slate-300 text-sm leading-relaxed whitespace-pre-line font-terminal"></p>
+        </div>
+
+        <!-- Instruction: try it section -->
+        <div class="px-6 py-3 bg-slate-900/40">
+          <div class="text-xs font-terminal text-slate-600 uppercase tracking-wider mb-1.5">💻 Try it</div>
+          <p id="challenge-instruction" class="text-slate-100 text-sm leading-relaxed font-medium"></p>
+        </div>
+      </div>
+
+      <!-- Terminal window -->
+      <div class="flex-1 flex flex-col min-h-0 bg-slate-950">
+
+        <!-- Terminal chrome bar -->
+        <div class="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-slate-900/80 border-b border-slate-800">
+          <div class="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-green-500/60"></div>
+          <span class="text-slate-600 text-xs font-terminal ml-2">bash</span>
+          <span class="text-slate-700 text-xs font-terminal ml-auto">Tab to autocomplete · ↑↓ history</span>
+        </div>
+
+        <!-- Scrollable output + input -->
+        <div id="terminal-body" class="flex-1 overflow-y-auto p-4 terminal-body">
+          <div id="terminal-output"></div>
+          <!-- Active input line -->
+          <div class="flex items-center mt-1" id="input-row">
+            <span id="terminal-prompt" class="font-terminal text-sm whitespace-nowrap flex-shrink-0"></span>
+            <input
+              id="terminal-input"
+              type="text"
+              class="flex-1 bg-transparent outline-none font-terminal text-sm text-slate-100 ml-0.5 caret-green-400"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback bar -->
+      <div class="flex-shrink-0 border-t border-slate-800 px-6 py-2.5 min-h-[44px] flex flex-col justify-center gap-0.5 bg-slate-950">
+        <div id="feedback" class="hidden text-sm"></div>
+        <div id="hint-text" class="hidden text-xs"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/terminal.js"></script>
+  <script src="js/lessons.js"></script>
+  <script>
+    const terminal = new VirtualTerminal();
+    const engine = new LessonEngine(terminal);
+    engine.init();
+
+    const input = document.getElementById('terminal-input');
+    const cmdHistory = [];
+    let histIdx = -1;
+    let tabPrev = '';
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        handleTab();
+      } else if (e.key === 'Enter') {
+        const val = input.value;
+        input.value = '';
+        histIdx = -1;
+        tabPrev = '';
+        if (val.trim()) cmdHistory.unshift(val);
+        engine.handleInput(val);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx < cmdHistory.length - 1) {
+          histIdx++;
+          input.value = cmdHistory[histIdx];
+          setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx > 0) {
+          histIdx--;
+          input.value = cmdHistory[histIdx];
+        } else {
+          histIdx = -1;
+          input.value = '';
+        }
+      } else {
+        tabPrev = '';
+      }
+    });
+
+    document.getElementById('prev-btn').addEventListener('click', () => engine.prevChallenge());
+    document.getElementById('next-btn').addEventListener('click', () => engine.advanceChallenge());
+
+    // Keep terminal focused on click anywhere in terminal body
+    document.getElementById('terminal-body').addEventListener('click', () => input.focus());
+
+    // ── Tab completion ───────────────────────────────────────────────────
+
+    function handleTab() {
+      const result = terminal.complete(input.value);
+      if (!result.matches.length) return;
+
+      if (result.type === 'command') {
+        if (result.matches.length === 1) {
+          input.value = result.matches[0] + ' ';
+        } else {
+          const common = commonPrefix(result.matches);
+          if (common.length > result.partial.length) {
+            input.value = common;
+          } else if (input.value === tabPrev) {
+            engine._appendLine(result.matches.join('  '));
+            engine._scrollDown();
+          }
+        }
+      } else if (result.type === 'path') {
+        if (result.matches.length === 1) {
+          const m = result.matches[0];
+          input.value = result.cmdParts.join(' ') + ' ' + m.fullArg + (m.isDir ? '/' : ' ');
+        } else {
+          const common = commonPrefix(result.matches.map(m => m.fullArg));
+          const newArg = common.length > result.partial.length ? common : result.partial;
+          const newVal = result.cmdParts.join(' ') + ' ' + newArg;
+          if (newVal.length > input.value.trim().length) {
+            input.value = newVal;
+          } else if (input.value.trim() === tabPrev) {
+            engine._appendLine(
+              result.matches.map(m => terminal._fmtName(m.name, m.isDir ? 'dir' : 'file')).join('  ')
+            );
+            engine._scrollDown();
+          }
+        }
+      }
+
+      tabPrev = input.value.trim();
+    }
+
+    function commonPrefix(strings) {
+      if (!strings.length) return '';
+      let prefix = strings[0];
+      for (const s of strings.slice(1)) {
+        while (!s.startsWith(prefix)) prefix = prefix.slice(0, -1);
+        if (!prefix) break;
+      }
+      return prefix;
+    }
+  </script>
+
+</body>
+</html>

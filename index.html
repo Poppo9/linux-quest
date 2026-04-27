@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>linux-quest — Learn Linux by doing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            terminal: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="flex items-center justify-between px-8 pt-7 pb-2 max-w-7xl mx-auto">
+    <span class="text-green-400 font-bold text-xl font-terminal">linux-quest</span>
+    <a href="lessons.html"
+       class="text-sm text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-4 py-2 rounded transition-colors">
+      Start Learning →
+    </a>
+  </header>
+
+  <!-- ── Hero ───────────────────────────────────────────────────────────── -->
+  <section class="text-center px-4 pt-20 pb-16 max-w-4xl mx-auto" aria-labelledby="hero-heading">
+    <div class="inline-flex items-center gap-2 text-green-400 font-terminal text-xs mb-8 border border-green-400/20 bg-green-400/5 px-3 py-1 rounded-full">
+      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+      50+ interactive challenges · No setup required
+    </div>
+    <h1 id="hero-heading" class="text-4xl md:text-5xl lg:text-[3.4em] font-bold leading-tight mb-6">
+      Learn Linux.<br>
+      <span class="text-green-400">Finally make it stick.</span>
+    </h1>
+    <p class="text-slate-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+      Stop reading man pages. linux-quest teaches you Linux commands through real terminal
+      challenges — so they become instinct, not something you Google every time.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="lessons.html"
+         class="bg-green-400 hover:bg-green-300 text-slate-950 font-bold px-8 py-3 rounded-lg transition-colors text-lg">
+        Start Learning for Free
+      </a>
+      <a href="#how-it-works"
+         class="border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-3 rounded-lg transition-colors text-lg">
+        How it works ↓
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Demo terminal ──────────────────────────────────────────────────── -->
+  <section class="px-4 mb-32 max-w-3xl mx-auto" aria-label="Interactive Demo">
+    <div class="rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+      <div class="flex items-center gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800">
+        <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+        <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+        <span class="text-slate-500 text-xs font-terminal ml-2">linux-quest — bash</span>
+      </div>
+      <div class="bg-slate-950 p-6 min-h-64 font-terminal text-sm leading-relaxed" id="demo-terminal">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How it works ───────────────────────────────────────────────────── -->
+  <section id="how-it-works" class="border-t border-slate-800 px-4 py-24">
+    <div class="max-w-5xl mx-auto grid gap-12 md:grid-cols-3">
+      <div>
+        <div class="text-green-400 font-terminal text-5xl font-bold mb-4 leading-none">01</div>
+        <h3 class="text-xl font-semibold mb-3">Learn by doing</h3>
+        <p class="text-slate-400 leading-relaxed">
+          Every concept is practiced immediately in a real terminal simulation.
+          No passive reading — just typing.
+        </p>
+      </div>
+      <div>
+        <div class="text-green-400 font-terminal text-5xl font-bold mb-4 leading-none">02</div>
+        <h3 class="text-xl font-semibold mb-3">Build muscle memory</h3>
+        <p class="text-slate-400 leading-relaxed">
+          Challenges are structured to reinforce key patterns. Your progress is
+          saved so you always know where you left off.
+        </p>
+      </div>
+      <div>
+        <div class="text-green-400 font-terminal text-5xl font-bold mb-4 leading-none">03</div>
+        <h3 class="text-xl font-semibold mb-3">Structured from zero</h3>
+        <p class="text-slate-400 leading-relaxed">
+          10 topics from navigation to shell scripting. Each lesson builds on
+          the last. No prior Linux knowledge required.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Final CTA ──────────────────────────────────────────────────────── -->
+  <section class="border-t border-slate-800 px-4 py-24">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold mb-2">No setup. No downloads.</h2>
+        <p class="text-slate-400">Open your browser and start building muscle memory right now.</p>
+      </div>
+      <a href="lessons.html"
+         class="flex-shrink-0 bg-green-400 hover:bg-green-300 text-slate-950 font-bold px-8 py-3 rounded-lg transition-colors whitespace-nowrap text-lg">
+        Start Learning for Free →
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+  <footer class="border-t border-slate-800 px-8 py-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between text-slate-600 text-sm font-terminal">
+      <span>© 2026 linux-quest</span>
+      <a href="lessons.html" class="hover:text-slate-400 transition-colors">Lessons</a>
+    </div>
+  </footer>
+
+  <!-- ── Demo animation script ──────────────────────────────────────────── -->
+  <script>
+    const DEMO_STEPS = [
+      { type: 'cmd',    cwd: '~',           text: 'pwd' },
+      { type: 'output', lines: ['/home/user'] },
+      { type: 'cmd',    cwd: '~',           text: 'ls' },
+      { type: 'output', lines: [
+          '<span class="text-blue-400 font-bold">Documents</span>  ' +
+          '<span class="text-blue-400 font-bold">Downloads</span>  ' +
+          '<span class="text-blue-400 font-bold">Music</span>  ' +
+          '<span class="text-blue-400 font-bold">Pictures</span>  ' +
+          'notes.txt  todo.txt'
+      ]},
+      { type: 'cmd',    cwd: '~',           text: 'cd Documents' },
+      { type: 'cmd',    cwd: '~/Documents', text: 'ls -la' },
+      { type: 'output', lines: [
+          'total 32',
+          'drwxr-xr-x 3 user user  4096 Jan 14 16:45 <span class="text-blue-400 font-bold">.</span>',
+          'drwxr-xr-x 6 user user  4096 Jan 16 09:05 <span class="text-blue-400 font-bold">..</span>',
+          '-rw-r--r-- 1 user user 48291 Jan 14 16:45 report.pdf',
+          '-rw-r--r-- 1 user user  1203 Jan 13 11:20 letter.txt',
+          'drwxr-xr-x 2 user user  4096 Jan 10 10:00 <span class="text-blue-400 font-bold">projects</span>',
+      ]},
+      { type: 'cmd',    cwd: '~/Documents', text: 'cd ~' },
+      { type: 'pause' },
+    ];
+
+    const container = document.getElementById('demo-terminal');
+    let running = true;
+
+    function prompt(cwd) {
+      return `<span class="text-green-400 font-bold">user@linux-quest</span>:<span class="text-blue-400">${cwd}</span>$ `;
+    }
+
+    function delay(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    async function appendLine(html, cls = '') {
+      const div = document.createElement('div');
+      div.className = `demo-line text-slate-300 leading-relaxed ${cls}`;
+      div.innerHTML = html;
+      container.appendChild(div);
+    }
+
+    async function typeCmd(cwd, text) {
+      const div = document.createElement('div');
+      div.className = 'demo-line leading-relaxed';
+      div.innerHTML = prompt(cwd);
+      const span = document.createElement('span');
+      div.appendChild(span);
+      const cur = document.createElement('span');
+      cur.className = 'cursor';
+      div.appendChild(cur);
+      container.appendChild(div);
+
+      for (const ch of text) {
+        if (!running) return;
+        span.textContent += ch;
+        await delay(55 + Math.random() * 45);
+      }
+      await delay(180);
+      cur.remove();
+    }
+
+    async function runDemo() {
+      while (running) {
+        container.innerHTML = '';
+        for (const step of DEMO_STEPS) {
+          if (!running) break;
+          if (step.type === 'cmd') {
+            await typeCmd(step.cwd, step.text);
+          } else if (step.type === 'output') {
+            for (const line of step.lines) {
+              await appendLine(line);
+              await delay(60);
+            }
+          } else if (step.type === 'pause') {
+            await delay(2400);
+          }
+          await delay(280);
+        }
+      }
+    }
+
+    // Only run when visible
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !running) { running = true; runDemo(); }
+        if (!e.isIntersecting) running = false;
+      });
+    });
+    obs.observe(container);
+    runDemo();
+  </script>
+
+</body>
+</html>

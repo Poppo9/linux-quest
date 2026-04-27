@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+/* ── Terminal cursor ──────────────────────────────────────────────────────── */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: #4ade80;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── Terminal scrollbar ───────────────────────────────────────────────────── */
+.terminal-body::-webkit-scrollbar       { width: 4px; }
+.terminal-body::-webkit-scrollbar-track { background: transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+/* ── Feedback animations ──────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  60%       { transform: translateX(5px); }
+  80%       { transform: translateX(-3px); }
+}
+
+.animate-fade-in { animation: fadeIn 0.25s ease; }
+.animate-shake   { animation: shake 0.35s ease; }
+
+/* ── Demo terminal (landing page) ────────────────────────────────────────── */
+.demo-line {
+  opacity: 0;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+/* ── Sidebar active item left border trick ───────────────────────────────── */
+.lesson-active {
+  border-left: 2px solid #4ade80;
+  padding-left: calc(0.75rem - 2px);
+}
+
+/* ── Smooth scrolling ────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
