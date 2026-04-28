@@ -1,19 +1,8 @@
 [build]
   publish = "."
-
-[build.environment]
-  NODE_VERSION = "20"
+  command = "printf 'const SUPABASE_URL=\"%s\";\nconst SUPABASE_ANON_KEY=\"%s\";\n' \"$SUPABASE_URL\" \"$SUPABASE_ANON_KEY\" > js/config.js"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[context.production]
-  command = ""
-
-[context.deploy-preview]
-  command = ""
-
-[context.branch-deploy]
-  command = ""

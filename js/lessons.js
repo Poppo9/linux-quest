@@ -88,6 +88,17 @@ class LessonEngine {
     if (!this.progress[sectionId][lessonId]) this.progress[sectionId][lessonId] = {};
     this.progress[sectionId][lessonId][idx] = true;
     this._saveProgress();
+    const user = getUser();
+    if (user) {
+      pushProgressRow(user.id, sectionId, lessonId, idx)
+        .catch(err => console.warn('Progress sync failed:', err));
+    }
+  }
+
+  replaceProgress(newProgress) {
+    this.progress = newProgress;
+    this._resumeProgress();
+    this._renderSidebar();
   }
 
   _isLessonComplete(sectionId, lessonId, total) {
@@ -350,11 +361,15 @@ class LessonEngine {
     const section = this.sections[this.sectionIdx];
     const lesson = section.lessons[this.lessonIdx];
     const isLastChallenge = this.challengeIdx >= lesson.challenges.length - 1;
-    const isLastLesson = this.lessonIdx >= section.lessons.length - 1;
+    const isLastLesson    = this.lessonIdx >= section.lessons.length - 1;
 
     if (isLastChallenge && isLastLesson) return;
 
     if (isLastChallenge) {
+      const gate = checkGate(section.id, lesson.id, isLastLesson);
+      if (gate === 'registration') { showGateModal('registration'); return; }
+      if (gate === 'premium')      { showGateModal('premium');      return; }
+
       this.lessonIdx++;
       this.challengeIdx = 0;
       this._loadLesson();
