@@ -8,56 +8,57 @@
       "lessons": [
         {
           "id": "pwd",
-          "title": "Where am I? — pwd",
+          "title": "Where am I? (pwd)",
           "concept": "Before you can go anywhere, you need to know where you already are.",
           "initial_cwd": "/home/user",
           "challenges": [
             {
-              "explanation": "pwd — Print Working Directory\n\nPrints the full absolute path of your current location in the filesystem. Think of it like a \"you are here\" marker — it never moves you, it just reports where you already are.\n\nNo arguments needed. It always works from any location.\n\nSyntax:  pwd",
+              "explanation": "pwd: Print Working Directory\n\nPrints the full absolute path of your current location in the filesystem. Think of it like a \"you are here\" marker; it never moves you, it just reports where you already are.\n\nNo arguments needed. It always works from any location.\n\nSyntax:  pwd",
               "instruction": "Your terminal just opened. You don't know where you are. Type pwd to find your current location.",
               "expected_commands": ["pwd"],
               "hint": "pwd takes no arguments. Just type: pwd",
-              "success_message": "✓ You're at /home/user — your home directory."
+              "success_message": "✓ You're at /home/user, your home directory."
             }
           ]
         },
         {
           "id": "ls-basic",
-          "title": "What's here? — ls",
+          "title": "What's here? (ls)",
           "concept": "Knowing where you are is step one. Seeing what's there is step two.",
           "initial_cwd": "/home/user",
           "challenges": [
             {
-              "explanation": "ls — List directory contents\n\nShows the files and folders inside a directory. Without any arguments it lists your current directory. On most systems:\n  • directories appear in blue\n  • regular files in white\n  • executable files (.sh, .py) in green\n\nSyntax:  ls [path]",
+              "explanation": "ls: List directory contents\n\nShows the files and folders inside a directory. Without any arguments it lists your current directory. On most systems:\n  • directories appear in blue\n  • regular files in white\n  • executable files (.sh, .py) in green\n\nSyntax:  ls [path]",
               "instruction": "You're in your home directory. See what files and folders are here.",
               "expected_commands": ["ls", "ls ."],
               "hint": "Just type ls with no arguments.",
               "success_message": "✓ You can see your files and directories!"
             },
             {
-              "explanation": "ls with a path argument\n\nYou can pass any directory path to ls as an argument. This lets you look inside a directory without navigating into it first — useful for quickly checking contents before you decide to cd.\n\nSyntax:  ls <directory>\nExample: ls Downloads",
+              "explanation": "ls with a path argument\n\nYou can pass any directory path to ls as an argument. This lets you look inside a directory without navigating into it first, useful for quickly checking contents before you decide to cd.\n\nSyntax:  ls <directory>\nExample: ls Downloads",
               "instruction": "List the contents of the Documents folder without entering it.",
+              "tip": "💡 Tip: press Tab to autocomplete directory names as you type.",
               "expected_commands": ["ls Documents", "ls Documents/", "ls ./Documents"],
               "hint": "Pass the directory name as an argument: ls Documents",
-              "success_message": "✓ You can inspect any directory with ls — without moving into it!"
+              "success_message": "✓ You can inspect any directory with ls, without moving into it!"
             }
           ]
         },
         {
           "id": "ls-flags",
-          "title": "Seeing more — ls flags",
+          "title": "Seeing more: ls flags",
           "concept": "Flags (options starting with -) modify how a command behaves. ls has many useful ones.",
           "initial_cwd": "/home/user",
           "challenges": [
             {
-              "explanation": "The -l flag — long listing format\n\nThe -l flag (lowercase L) switches ls to \"long format\": one entry per line with full details:\n\n  drwxr-xr-x  2  user  user  4096  Jan 14  Documents\n  │           │   │     │     │     │        └─ name\n  │           │   │     │     │     └─ last modified\n  │           │   │     │     └─ size in bytes\n  │           │   │     └─ group\n  │           │   └─ owner\n  │           └─ number of hard links\n  └─ permissions (d=directory, r=read, w=write, x=execute)\n\nSyntax:  ls -l [path]",
+              "explanation": "The -l flag: long listing format\n\nThe -l flag (lowercase L) switches ls to \"long format\": one entry per line with full details:\n\n  drwxr-xr-x  2  user  user  4096  Jan 14  Documents\n  │           │   │     │     │     │        └─ name\n  │           │   │     │     │     └─ last modified\n  │           │   │     │     └─ size in bytes\n  │           │   │     └─ group\n  │           │   └─ owner\n  │           └─ number of hard links\n  └─ permissions (d=directory, r=read, w=write, x=execute)\n\nSyntax:  ls -l [path]",
               "instruction": "See file details: permissions, size, and modification date. Use ls -l.",
               "expected_commands": ["ls -l", "ls -l ."],
               "hint": "-l stands for 'long listing format'.",
               "success_message": "✓ Now you can see file sizes, permissions, and timestamps!"
             },
             {
-              "explanation": "The -a flag — show all files\n\nBy convention, any file whose name starts with a dot (.) is hidden — ls omits it by default. These \"dotfiles\" are typically:\n  • shell config files: .bashrc, .zshrc\n  • app config: .gitconfig, .vimrc\n  • history files: .bash_history\n\nThe -a flag (all) makes them visible alongside regular files.\n\nSyntax:  ls -a [path]",
+              "explanation": "The -a flag: show all files\n\nBy convention, any file whose name starts with a dot (.) is hidden; ls omits it by default. These \"dotfiles\" are typically:\n  • shell config files: .bashrc, .zshrc\n  • app config: .gitconfig, .vimrc\n  • history files: .bash_history\n\nThe -a flag (all) makes them visible alongside regular files.\n\nSyntax:  ls -a [path]",
               "instruction": "Some files start with a dot and are hidden. Reveal them all.",
               "expected_commands": ["ls -a", "ls -a ."],
               "hint": "The -a flag shows all files, including hidden ones (starting with .).",
@@ -68,35 +69,36 @@
               "instruction": "Combine both: show all files in long format. Try ls -la (or the shortcut ll).",
               "expected_commands": ["ls -la", "ls -al", "ll", "ls -la .", "ls -al ."],
               "hint": "Combine flags: ls -la. Many systems also have 'll' as a shortcut.",
-              "success_message": "✓ Full picture — every file, every detail!"
+              "success_message": "✓ Full picture: every file, every detail!"
             }
           ]
         },
         {
           "id": "cd-basics",
-          "title": "Moving around — cd",
+          "title": "Moving around: cd",
           "concept": "Knowing what's in a directory is useful. Being able to move into it is essential.",
           "initial_cwd": "/home/user",
           "challenges": [
             {
-              "explanation": "cd — Change Directory\n\nMoves you into a different directory. After a successful cd, your shell prompt changes to reflect your new location.\n\nYou can use:\n  • a relative path   cd Documents       (relative to where you are now)\n  • an absolute path  cd /home/user/Documents  (works from anywhere)\n\nIf you try to cd into a file or a nonexistent path, you'll get an error — cd only works on directories.\n\nSyntax:  cd <path>",
+              "explanation": "cd: Change Directory\n\nMoves you into a different directory. After a successful cd, your shell prompt changes to reflect your new location.\n\nYou can use:\n  • a relative path   cd Documents       (relative to where you are now)\n  • an absolute path  cd /home/user/Documents  (works from anywhere)\n\nIf you try to cd into a file or a nonexistent path, you'll get an error; cd only works on directories.\n\nSyntax:  cd <path>",
               "instruction": "Move into the Documents directory.",
+              "tip": "💡 Tip: type cd Doc and press Tab — the shell completes the rest.",
               "expected_commands": ["cd Documents", "cd Documents/", "cd ./Documents", "cd /home/user/Documents"],
               "hint": "cd followed by a directory name moves you inside it: cd Documents",
               "success_message": "✓ You're now inside Documents! Notice the prompt changed."
             },
             {
               "initial_cwd": "/home/user/Documents",
-              "explanation": "Confirming your location with pwd\n\nAfter navigating with cd, it's good practice to confirm you're where you expected. Your prompt shows a shortened version (~/Documents), but pwd always gives you the full absolute path with no ambiguity.\n\nThis challenge starts with you already inside Documents — as if you just completed the previous step.",
+              "explanation": "Confirming your location with pwd\n\nAfter navigating with cd, it's good practice to confirm you're where you expected. Your prompt shows a shortened version (~/Documents), but pwd always gives you the full absolute path with no ambiguity.\n\nThis challenge starts with you already inside Documents, as if you just completed the previous step.",
               "instruction": "Confirm your new location.",
               "expected_commands": ["pwd"],
-              "hint": "You already know this one — pwd shows where you are.",
-              "success_message": "✓ /home/user/Documents — exactly where you expected!"
+              "hint": "You already know this one: pwd shows where you are.",
+              "success_message": "✓ /home/user/Documents, exactly where you expected!"
             },
             {
               "initial_cwd": "/home/user/Documents",
               "explanation": "Navigating deeper, one step at a time\n\nYou can cd into a subdirectory by typing its name relative to your current position. Each cd takes you one level deeper into the directory tree.\n\nYou can also skip levels by chaining: cd projects/subdir, but one step at a time is often clearer when exploring an unfamiliar structure.\n\nThis challenge also starts inside Documents.",
-              "instruction": "Go deeper — move into the projects subdirectory.",
+              "instruction": "Go deeper: move into the projects subdirectory.",
               "expected_commands": ["cd projects", "cd projects/", "cd ./projects"],
               "hint": "You can keep navigating deeper with cd, one step at a time.",
               "success_message": "✓ You're now at /home/user/Documents/projects!"
@@ -105,12 +107,12 @@
         },
         {
           "id": "cd-up",
-          "title": "Going back — cd ..",
+          "title": "Going back: cd ..",
           "concept": "Moving forward is easy. Knowing how to go back is just as important.",
           "initial_cwd": "/home/user/Documents/projects",
           "challenges": [
             {
-              "explanation": "cd .. — Go up one level\n\n.. (two dots) is a special path name that always refers to the parent directory — the directory containing your current one. It works in any command, not just cd:\n  ls ..          see what's in the parent directory\n  cat ../notes.txt  read a file one level up\n\nYou start this challenge deep inside projects. Going up one level lands you in Documents.\n\nSyntax:  cd ..",
+              "explanation": "cd ..: Go up one level\n\n.. (two dots) is a special path name that always refers to the parent directory, the directory containing your current one. It works in any command, not just cd:\n  ls ..          see what's in the parent directory\n  cat ../notes.txt  read a file one level up\n\nYou start this challenge deep inside projects. Going up one level lands you in Documents.\n\nSyntax:  cd ..",
               "instruction": "You start inside projects. Go back up one level to Documents.",
               "expected_commands": ["cd .."],
               "hint": ".. refers to the parent directory. cd .. moves you up one level.",
@@ -118,26 +120,26 @@
             },
             {
               "initial_cwd": "/home/user/Documents",
-              "explanation": "Going up again\n\nEach cd .. moves you exactly one level up the tree. You can also go up multiple levels at once:\n  cd ../..   goes up two levels\n  cd ../../.. goes up three levels\n\nThis challenge starts where the previous one ended — in Documents. Going up from here takes you back to the home directory.\n\nSyntax:  cd ..",
+              "explanation": "Going up again\n\nEach cd .. moves you exactly one level up the tree. You can also go up multiple levels at once:\n  cd ../..   goes up two levels\n  cd ../../.. goes up three levels\n\nThis challenge starts where the previous one ended, in Documents. Going up from here takes you back to the home directory.\n\nSyntax:  cd ..",
               "instruction": "Go up one more level to reach your home directory.",
               "expected_commands": ["cd .."],
               "hint": "Each cd .. goes up exactly one level in the directory tree.",
-              "success_message": "✓ Back home — /home/user!"
+              "success_message": "✓ Back home: /home/user!"
             }
           ]
         },
         {
           "id": "cd-home",
-          "title": "Home shortcut — cd ~",
+          "title": "Home shortcut: cd ~",
           "concept": "When you're deep in the tree, there's a faster way home than cd ../../..",
           "initial_cwd": "/home/user/Documents/projects",
           "challenges": [
             {
-              "explanation": "~ — The home directory shortcut\n\n~ (tilde) is a special symbol that always expands to your home directory (/home/user), regardless of where you are. You can use it in any path:\n  ls ~/Documents         list your Documents from anywhere\n  cd ~/Downloads         jump straight to Downloads\n  cat ~/notes.txt        read a home file without moving\n\nRunning cd with no arguments at all is equivalent to cd ~ — both take you straight home.\n\nSyntax:  cd ~   or just   cd",
+              "explanation": "~: The home directory shortcut\n\n~ (tilde) is a special symbol that always expands to your home directory (/home/user), regardless of where you are. You can use it in any path:\n  ls ~/Documents         list your Documents from anywhere\n  cd ~/Downloads         jump straight to Downloads\n  cat ~/notes.txt        read a home file without moving\n\nRunning cd with no arguments at all is equivalent to cd ~; both take you straight home.\n\nSyntax:  cd ~   or just   cd",
               "instruction": "You're deep inside the filesystem. Jump straight back home in one command.",
               "expected_commands": ["cd ~", "cd", "cd /home/user"],
               "hint": "~ is your home directory shortcut. Just 'cd' with no arguments also works.",
-              "success_message": "✓ Home in an instant — no matter how deep you were!"
+              "success_message": "✓ Home in an instant, no matter how deep you were!"
             }
           ]
         },
@@ -148,15 +150,15 @@
           "initial_cwd": "/home/user/Documents",
           "challenges": [
             {
-              "explanation": "Absolute paths — starting from /\n\nEvery location on a Linux filesystem can be described as an absolute path: one that starts from / (the root) and uniquely identifies a place regardless of your current directory.\n\nContrast:\n  cd Documents         relative — only works if Documents is in your cwd\n  cd /home/user/Documents  absolute — always works from anywhere\n\nAbsolute paths are especially useful in scripts, config files, or whenever you can't be sure where the user will be when the command runs.\n\nSyntax:  cd /path/from/root",
+              "explanation": "Absolute paths: starting from /\n\nEvery location on a Linux filesystem can be described as an absolute path: one that starts from / (the root) and uniquely identifies a place regardless of your current directory.\n\nContrast:\n  cd Documents         relative, only works if Documents is in your cwd\n  cd /home/user/Documents  absolute, always works from anywhere\n\nAbsolute paths are especially useful in scripts, config files, or whenever you can't be sure where the user will be when the command runs.\n\nSyntax:  cd /path/from/root",
               "instruction": "Navigate to /home/user/Downloads using its full absolute path.",
               "expected_commands": ["cd /home/user/Downloads"],
               "hint": "Absolute paths start with /. Type the full path: cd /home/user/Downloads",
-              "success_message": "✓ Absolute paths are reliable — they always work, no matter where you start!"
+              "success_message": "✓ Absolute paths are reliable: they always work, no matter where you start!"
             },
             {
               "initial_cwd": "/home/user/Downloads",
-              "explanation": "Listing after navigation\n\nAfter landing somewhere new with cd, ls is the natural follow-up — it shows you what's there.\n\nYou can also combine both operations without moving:\n  ls /home/user/Downloads  shows contents without changing your location\n\nThis challenge starts with you already in Downloads, as if you just ran the previous step.",
+              "explanation": "Listing after navigation\n\nAfter landing somewhere new with cd, ls is the natural follow-up; it shows you what's there.\n\nYou can also combine both operations without moving:\n  ls /home/user/Downloads  shows contents without changing your location\n\nThis challenge starts with you already in Downloads, as if you just ran the previous step.",
               "instruction": "List the contents of your new location.",
               "expected_commands": ["ls", "ls ."],
               "hint": "After cd, just type ls to see what's in your new directory.",

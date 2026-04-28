@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lessons — linux-quest</title>
+  <title>Lessons | linux-quest</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -16,6 +16,8 @@
       }
     }
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -25,8 +27,8 @@
     <a href="index.html" class="text-green-400 font-bold font-terminal text-base hover:text-green-300 transition-colors">
       linux-quest
     </a>
-    <span class="text-slate-700">/</span>
-    <span id="section-title" class="text-slate-500 text-sm truncate">Navigating Directories</span>
+    <span class="text-slate-500">/</span>
+    <span id="section-title" class="text-slate-300 text-sm truncate">Navigating Directories</span>
   </nav>
 
   <!-- ── Layout: sidebar + main ─────────────────────────────────────────── -->
@@ -40,39 +42,63 @@
     <!-- ── Main content ─────────────────────────────────────────────────── -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-      <!-- Lesson header: title + concept -->
-      <div class="flex-shrink-0 border-b border-slate-800 px-6 py-4">
-        <h1 id="lesson-title" class="text-base font-semibold text-slate-100 leading-tight"></h1>
-        <p id="lesson-concept" class="text-slate-500 text-sm mt-1 leading-relaxed italic"></p>
-      </div>
-
-      <!-- Challenge panel: nav + explanation + instruction -->
+      <!-- Challenge panel: nav + title + explanation + instruction -->
       <div class="flex-shrink-0 border-b border-slate-800">
 
-        <!-- Navigation row -->
-        <div class="flex items-center gap-2 px-4 py-2 bg-slate-900/70 border-b border-slate-800/60">
+        <!-- Combined header row: prev | title+concept+progress | next -->
+        <div class="flex items-center gap-3 px-4 py-3 bg-slate-900/70 border-b border-slate-800/60">
           <button id="prev-btn"
-            class="font-terminal text-xs text-slate-400 hover:text-slate-200 px-3 py-1 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400">
+            class="font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0">
             ◀ Prev
           </button>
-          <span id="challenge-progress" class="flex-1 text-center text-xs font-terminal text-slate-500 select-none"></span>
+          <div class="flex-1 min-w-0 text-center">
+            <h1 id="lesson-title" class="text-sm font-semibold text-slate-100 leading-tight truncate"></h1>
+            <p id="lesson-concept" class="text-slate-400 text-xs mt-0.5 italic truncate"></p>
+            <span id="challenge-progress" class="text-xs font-terminal text-slate-400 select-none"></span>
+          </div>
           <button id="next-btn"
-            class="font-terminal text-xs text-slate-400 hover:text-slate-200 px-3 py-1 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400">
+            class="font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0">
             Next ▶
           </button>
         </div>
 
-        <!-- Explanation: learn section -->
-        <div class="px-6 py-4 border-b border-slate-800/60 bg-slate-900/10">
-          <div class="text-xs font-terminal text-slate-600 uppercase tracking-wider mb-2">📖 Learn</div>
-          <p id="challenge-explanation"
-             class="text-slate-300 text-sm leading-relaxed whitespace-pre-line font-terminal"></p>
-        </div>
+        <!-- Collapsible panel -->
+        <div id="challenge-panel">
 
-        <!-- Instruction: try it section -->
-        <div class="px-6 py-3 bg-slate-900/40">
-          <div class="text-xs font-terminal text-slate-600 uppercase tracking-wider mb-1.5">💻 Try it</div>
-          <p id="challenge-instruction" class="text-slate-100 text-sm leading-relaxed font-medium"></p>
+          <!-- Summary strip: shown only when collapsed -->
+          <div id="challenge-panel-summary"
+               class="items-center gap-3 px-4 py-2 border-b border-slate-800/40 bg-slate-900/60 cursor-default">
+            <span class="text-xs font-terminal text-slate-400 flex-shrink-0">💻</span>
+            <span id="challenge-summary-text" class="text-xs font-terminal text-slate-300 truncate flex-1"></span>
+            <span class="text-xs font-terminal text-slate-500 flex-shrink-0">click to expand</span>
+          </div>
+
+          <!-- Full content -->
+          <div id="challenge-panel-full">
+
+            <!-- Explanation: learn section -->
+            <div class="px-6 py-4 border-b border-slate-800/60 bg-slate-900/10">
+              <div class="flex items-start mb-2">
+                <span class="text-xs font-terminal text-slate-400 uppercase tracking-wider flex-1 pt-0.5">📖 Learn</span>
+                <div class="flex flex-col items-end gap-0.5">
+                  <button id="panel-close-btn"
+                    class="font-terminal text-xs text-slate-500 hover:text-slate-300 px-1.5 py-0.5 rounded transition-colors">click to collapse</button>
+                  <button id="panel-lock-btn"
+                    class="font-terminal text-xs text-green-500 hover:text-green-400 px-1.5 py-0.5 rounded transition-colors">auto-collapse: on</button>
+                </div>
+              </div>
+              <p id="challenge-explanation"
+                 class="text-slate-200 text-sm leading-relaxed whitespace-pre-line font-terminal"></p>
+            </div>
+
+            <!-- Instruction: try it section -->
+            <div class="px-6 py-3 bg-slate-900/40">
+              <div class="text-xs font-terminal text-slate-400 uppercase tracking-wider mb-1.5">💻 Try it</div>
+              <p id="challenge-instruction" class="text-slate-100 text-sm leading-relaxed font-medium"></p>
+              <p id="challenge-tip" class="hidden mt-2 text-xs font-terminal text-slate-400"></p>
+            </div>
+
+          </div>
         </div>
       </div>
 
@@ -84,24 +110,25 @@
           <div class="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
           <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></div>
           <div class="w-2.5 h-2.5 rounded-full bg-green-500/60"></div>
-          <span class="text-slate-600 text-xs font-terminal ml-2">bash</span>
-          <span class="text-slate-700 text-xs font-terminal ml-auto">Tab to autocomplete · ↑↓ history</span>
+          <span class="text-slate-400 text-xs font-terminal ml-2">bash</span>
+          <span class="text-slate-400 text-xs font-terminal ml-auto">Tab to autocomplete · ↑↓ history</span>
         </div>
 
         <!-- Scrollable output + input -->
         <div id="terminal-body" class="flex-1 overflow-y-auto p-4 terminal-body">
           <div id="terminal-output"></div>
           <!-- Active input line -->
-          <div class="flex items-center mt-1" id="input-row">
-            <span id="terminal-prompt" class="font-terminal text-sm whitespace-nowrap flex-shrink-0"></span>
+          <div class="flex items-baseline font-terminal text-sm leading-relaxed" id="input-row">
+            <span id="terminal-prompt" class="whitespace-nowrap flex-shrink-0"></span>
             <input
               id="terminal-input"
               type="text"
-              class="flex-1 bg-transparent outline-none font-terminal text-sm text-slate-100 ml-0.5 caret-green-400"
+              class="flex-1 bg-transparent outline-none text-slate-100 caret-green-400"
               autocomplete="off"
               autocorrect="off"
-              autocapitalize="off"
+              autocapitalize="none"
               spellcheck="false"
+              style="font-variant-ligatures:none;font-feature-settings:'liga' 0,'calt' 0;"
             >
           </div>
         </div>
@@ -111,6 +138,7 @@
       <div class="flex-shrink-0 border-t border-slate-800 px-6 py-2.5 min-h-[44px] flex flex-col justify-center gap-0.5 bg-slate-950">
         <div id="feedback" class="hidden text-sm"></div>
         <div id="hint-text" class="hidden text-xs"></div>
+        <div id="enter-hint" class="hidden text-xs font-terminal text-slate-500"></div>
       </div>
 
     </main>
@@ -134,6 +162,10 @@
         handleTab();
       } else if (e.key === 'Enter') {
         const val = input.value;
+        if (!val.trim() && engine.challengeSolved) {
+          engine.advanceChallenge();
+          return;
+        }
         input.value = '';
         histIdx = -1;
         tabPrev = '';
@@ -162,6 +194,31 @@
 
     document.getElementById('prev-btn').addEventListener('click', () => engine.prevChallenge());
     document.getElementById('next-btn').addEventListener('click', () => engine.advanceChallenge());
+
+    // Collapse panel on first keystroke + strip smart punctuation
+    input.addEventListener('input', () => {
+      const v = input.value
+        .replace(/…/g, '...')
+        .replace(/[""]/g, '"')
+        .replace(/['']/g, "'")
+        .replace(/—/g, '--')
+        .replace(/–/g, '-');
+      if (v !== input.value) input.value = v;
+      if (input.value.length > 0) engine.collapsePanel();
+    });
+
+    // Re-expand on click on the summary strip
+    document.getElementById('challenge-panel-summary').addEventListener('click', () => {
+      engine.expandPanel();
+    });
+
+    document.getElementById('panel-close-btn').addEventListener('click', () => {
+      document.getElementById('challenge-panel').classList.add('collapsed');
+    });
+
+    document.getElementById('panel-lock-btn').addEventListener('click', () => {
+      engine.togglePanelLock();
+    });
 
     // Keep terminal focused on click anywhere in terminal body
     document.getElementById('terminal-body').addEventListener('click', () => input.focus());

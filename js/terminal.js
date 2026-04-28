@@ -79,7 +79,7 @@ class VirtualTerminal {
     } else if (displayPath.startsWith(this.home + '/')) {
       displayPath = '~' + displayPath.slice(this.home.length);
     }
-    return `<span class="text-green-400 font-bold">user@linux-quest</span>:<span class="text-blue-400">${displayPath}</span>$ `;
+    return `<span class="text-green-400 font-bold">user@linux-quest</span>:<span class="text-blue-400">${displayPath}</span>$&nbsp;`;
   }
 
   execute(input) {

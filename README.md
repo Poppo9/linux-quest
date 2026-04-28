@@ -4,14 +4,22 @@ A gamified, interactive Linux command tutorial — learn bash by doing, not by r
 
 Each lesson explains a command in detail, then drops you into a simulated terminal to practice it. Progress is saved in your browser.
 
-**Live structure:**
+## Structure
+
 - `index.html` — landing page
 - `lessons.html` — interactive lessons with simulated terminal
+- `css/styles.css` — animations, terminal styles, font imports
+- `js/terminal.js` — `VirtualTerminal` class (simulated filesystem + commands)
+- `js/lessons.js` — `LessonEngine` class (lesson loading, validation, progress)
+- `data/lessons.json` — all lesson/challenge content
 
-**Topics covered (MVP):**
-- Navigating Directories: `pwd`, `ls`, `ll`, `cd`, `cd ..`, `cd ~`, absolute paths
+## Topics
 
-**Topics planned:** File Operations, Reading Files, Permissions, Search & Find, Processes, Pipes & Redirection, Text Processing, Networking, Shell Scripting
+**Available:**
+- Navigating Directories: `pwd`, `ls`, `ll`, `ls -l`, `ls -a`, `cd`, `cd ..`, `cd ~`, absolute paths
+
+**Planned (locked):**
+File Operations · Reading File Content · Permissions · Search & Find · Processes · Pipes & Redirection · Text Processing · Networking · Shell Scripting
 
 ## Running locally
 
