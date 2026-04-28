@@ -1,3 +1,8 @@
+const BTN_NEXT_DEFAULT = 'font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0';
+const BTN_NEXT_SUCCESS = 'font-terminal text-xs text-green-400 border border-green-400/50 bg-green-400/10 hover:bg-green-400/20 px-3 py-1.5 rounded transition-colors flex-shrink-0';
+const BTN_LOCK_ON  = 'font-terminal text-xs text-green-500 hover:text-green-400 px-1.5 py-0.5 rounded transition-colors';
+const BTN_LOCK_OFF = 'font-terminal text-xs text-amber-500 hover:text-amber-400 px-1.5 py-0.5 rounded transition-colors';
+
 class LessonEngine {
   constructor(terminal) {
     this.terminal = terminal;
@@ -9,6 +14,27 @@ class LessonEngine {
     this.challengeSolved = false;
     this.panelLocked = false;
     this.progress = this._loadProgress();
+
+    this.$out      = document.getElementById('terminal-output');
+    this.$prompt   = document.getElementById('terminal-prompt');
+    this.$body     = document.getElementById('terminal-body');
+    this.$input    = document.getElementById('terminal-input');
+    this.$feedback = document.getElementById('feedback');
+    this.$hint     = document.getElementById('hint-text');
+    this.$enter    = document.getElementById('enter-hint');
+    this.$nextBtn  = document.getElementById('next-btn');
+    this.$prevBtn  = document.getElementById('prev-btn');
+    this.$panel    = document.getElementById('challenge-panel');
+    this.$lockBtn  = document.getElementById('panel-lock-btn');
+    this.$sidebar  = document.getElementById('sidebar-sections');
+    this.$secTitle = document.getElementById('section-title');
+    this.$lesTitle = document.getElementById('lesson-title');
+    this.$concept  = document.getElementById('lesson-concept');
+    this.$progress = document.getElementById('challenge-progress');
+    this.$explain  = document.getElementById('challenge-explanation');
+    this.$instr    = document.getElementById('challenge-instruction');
+    this.$summary  = document.getElementById('challenge-summary-text');
+    this.$tip      = document.getElementById('challenge-tip');
   }
 
   async init() {
@@ -19,7 +45,7 @@ class LessonEngine {
       this._resumeProgress();
       this._renderSidebar();
       this._loadLesson();
-      document.getElementById('terminal-input').focus();
+      this.$input.focus();
     } catch (e) {
       console.error('Failed to load lessons:', e);
     }
@@ -72,8 +98,7 @@ class LessonEngine {
   // ─── Sidebar ──────────────────────────────────────────────────────────────
 
   _renderSidebar() {
-    const el = document.getElementById('sidebar-sections');
-    el.innerHTML = '';
+    this.$sidebar.innerHTML = '';
 
     this.sections.forEach((section, si) => {
       const wrap = document.createElement('div');
@@ -124,7 +149,7 @@ class LessonEngine {
         wrap.appendChild(list);
       }
 
-      el.appendChild(wrap);
+      this.$sidebar.appendChild(wrap);
     });
   }
 
@@ -135,9 +160,9 @@ class LessonEngine {
     const lesson = section?.lessons?.[this.lessonIdx];
     if (!lesson) return;
 
-    document.getElementById('section-title').textContent = section.title;
-    document.getElementById('lesson-title').textContent = lesson.title;
-    document.getElementById('lesson-concept').textContent = lesson.concept || '';
+    this.$secTitle.textContent = section.title;
+    this.$lesTitle.textContent = lesson.title;
+    this.$concept.textContent = lesson.concept || '';
 
     this._renderChallenge();
   }
@@ -148,65 +173,58 @@ class LessonEngine {
     const challenge = lesson.challenges[this.challengeIdx];
     const total = lesson.challenges.length;
 
-    // Fresh terminal for every challenge
+    // Reset filesystem state so validation is deterministic regardless of what the user ran previously
     const cwd = challenge.initial_cwd || lesson.initial_cwd || '/home/user';
     this.terminal.reset(cwd);
-    document.getElementById('terminal-output').innerHTML = '';
+    this.$out.innerHTML = '';
     this._updatePrompt();
 
     // Challenge content
-    document.getElementById('challenge-progress').textContent = `${this.challengeIdx + 1} / ${total}`;
-    document.getElementById('challenge-explanation').textContent = challenge.explanation || '';
-    document.getElementById('challenge-instruction').textContent = challenge.instruction;
-    document.getElementById('challenge-summary-text').textContent = challenge.instruction;
+    this.$progress.textContent = `${this.challengeIdx + 1} / ${total}`;
+    this.$explain.textContent = challenge.explanation || '';
+    this.$instr.textContent = challenge.instruction;
+    this.$summary.textContent = challenge.instruction;
 
-    const panel = document.getElementById('challenge-panel');
-    panel.classList.remove('collapsed');
+    this.$panel.classList.remove('collapsed');
     this.panelLocked = false;
-    const lockBtn = document.getElementById('panel-lock-btn');
-    if (lockBtn) { lockBtn.textContent = 'auto-collapse: on'; lockBtn.className = 'font-terminal text-xs text-green-500 hover:text-green-400 px-1.5 py-0.5 rounded transition-colors'; }
+    this.$lockBtn.textContent = 'auto-collapse: on';
+    this.$lockBtn.className = BTN_LOCK_ON;
 
-    const tip = document.getElementById('challenge-tip');
     if (challenge.tip) {
-      tip.textContent = challenge.tip;
-      tip.className = 'mt-2 text-xs font-terminal text-slate-400';
+      this.$tip.textContent = challenge.tip;
+      this.$tip.className = 'mt-2 text-xs font-terminal text-slate-400';
     } else {
-      tip.textContent = '';
-      tip.className = 'hidden';
+      this.$tip.textContent = '';
+      this.$tip.className = 'hidden';
     }
 
     // Clear feedback
-    const fb = document.getElementById('feedback');
-    fb.textContent = '';
-    fb.className = 'hidden text-sm';
-    const hint = document.getElementById('hint-text');
-    hint.textContent = '';
-    hint.className = 'hidden text-xs';
-    const enterHint = document.getElementById('enter-hint');
-    enterHint.textContent = '';
-    enterHint.className = 'hidden';
+    this.$feedback.textContent = '';
+    this.$feedback.className = 'hidden text-sm';
+    this.$hint.textContent = '';
+    this.$hint.className = 'hidden text-xs';
+    this.$enter.textContent = '';
+    this.$enter.className = 'hidden';
 
     // Prev button: disabled on very first challenge of first lesson
-    const prevBtn = document.getElementById('prev-btn');
     const isFirst = this.challengeIdx === 0 && this.lessonIdx === 0;
-    prevBtn.disabled = isFirst;
+    this.$prevBtn.disabled = isFirst;
 
     // Next button: text changes at lesson boundary
-    const nextBtn = document.getElementById('next-btn');
     const isLastChallenge = this.challengeIdx >= total - 1;
     const isLastLesson = this.lessonIdx >= section.lessons.length - 1;
 
-    nextBtn.className = 'font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0';
+    this.$nextBtn.className = BTN_NEXT_DEFAULT;
 
     if (isLastChallenge && isLastLesson) {
-      nextBtn.textContent = 'Section complete ✓';
-      nextBtn.disabled = true;
+      this.$nextBtn.textContent = 'Section complete ✓';
+      this.$nextBtn.disabled = true;
     } else if (isLastChallenge) {
-      nextBtn.textContent = 'Next Lesson →';
-      nextBtn.disabled = false;
+      this.$nextBtn.textContent = 'Next Lesson →';
+      this.$nextBtn.disabled = false;
     } else {
-      nextBtn.textContent = 'Next ▶';
-      nextBtn.disabled = false;
+      this.$nextBtn.textContent = 'Next ▶';
+      this.$nextBtn.disabled = false;
     }
 
     this.wrongAttempts = 0;
@@ -219,7 +237,7 @@ class LessonEngine {
   handleInput(raw) {
     const input = raw.trim();
 
-    this._appendLine(this.terminal.getPrompt() + this._esc(raw));
+    this._appendLine(this.terminal.getPrompt() + this.terminal._esc(raw));
 
     if (!input) {
       this._updatePrompt();
@@ -230,7 +248,7 @@ class LessonEngine {
     const result = this.terminal.execute(input);
 
     if (result.clear) {
-      document.getElementById('terminal-output').innerHTML = '';
+      this.$out.innerHTML = '';
     } else {
       for (const line of result.lines) {
         this._appendLine(line);
@@ -262,16 +280,13 @@ class LessonEngine {
     this._markDone(section.id, lesson.id, this.challengeIdx);
     this.challengeSolved = true;
 
-    const fb = document.getElementById('feedback');
-    fb.textContent = challenge.success_message || '✓ Correct!';
-    fb.className = 'text-sm text-green-400 animate-fade-in';
+    this.$feedback.textContent = challenge.success_message || '✓ Correct!';
+    this.$feedback.className = 'text-sm text-green-400 animate-fade-in';
 
-    const nextBtn = document.getElementById('next-btn');
-    if (!nextBtn.disabled) {
-      nextBtn.className = 'font-terminal text-xs text-green-400 border border-green-400/50 bg-green-400/10 hover:bg-green-400/20 px-3 py-1.5 rounded transition-colors flex-shrink-0';
-      const enterHint = document.getElementById('enter-hint');
-      enterHint.textContent = '(Press Enter to continue)';
-      enterHint.className = 'text-xs font-terminal text-slate-500';
+    if (!this.$nextBtn.disabled) {
+      this.$nextBtn.className = BTN_NEXT_SUCCESS;
+      this.$enter.textContent = '(Press Enter to continue)';
+      this.$enter.className = 'text-xs font-terminal text-slate-500';
     }
 
     this._renderSidebar();
@@ -279,38 +294,35 @@ class LessonEngine {
 
   _onWrong(challenge) {
     this.wrongAttempts++;
-    const fb = document.getElementById('feedback');
-    fb.innerHTML = '✗ Not quite, try again.';
-    fb.className = 'text-sm text-red-400 animate-shake';
-    setTimeout(() => fb.classList.remove('animate-shake'), 400);
+    this.$feedback.innerHTML = '✗ Not quite, try again.';
+    this.$feedback.className = 'text-sm text-red-400 animate-shake';
+    setTimeout(() => this.$feedback.classList.remove('animate-shake'), 400);
 
     if (this.wrongAttempts >= 2 && challenge.hint) {
-      const hint = document.getElementById('hint-text');
-      hint.textContent = `💡 Hint: ${challenge.hint}`;
-      hint.className = 'text-xs text-yellow-400 mt-1';
+      this.$hint.textContent = `💡 Hint: ${challenge.hint}`;
+      this.$hint.className = 'text-xs text-yellow-400 mt-1';
     }
   }
 
   collapsePanel() {
     if (this.panelLocked) return;
-    document.getElementById('challenge-panel').classList.add('collapsed');
+    this.$panel.classList.add('collapsed');
   }
 
   expandPanel() {
-    document.getElementById('challenge-panel').classList.remove('collapsed');
-    document.getElementById('terminal-input').focus();
+    this.$panel.classList.remove('collapsed');
+    this.$input.focus();
   }
 
   togglePanelLock() {
     this.panelLocked = !this.panelLocked;
-    const btn = document.getElementById('panel-lock-btn');
     if (this.panelLocked) {
-      btn.textContent = 'auto-collapse: off';
-      btn.className = 'font-terminal text-xs text-amber-500 hover:text-amber-400 px-1.5 py-0.5 rounded transition-colors';
+      this.$lockBtn.textContent = 'auto-collapse: off';
+      this.$lockBtn.className = BTN_LOCK_OFF;
       this.expandPanel();
     } else {
-      btn.textContent = 'auto-collapse: on';
-      btn.className = 'font-terminal text-xs text-green-500 hover:text-green-400 px-1.5 py-0.5 rounded transition-colors';
+      this.$lockBtn.textContent = 'auto-collapse: on';
+      this.$lockBtn.className = BTN_LOCK_ON;
     }
   }
 
@@ -323,15 +335,15 @@ class LessonEngine {
       this.lessonIdx--;
       const lesson = this.sections[this.sectionIdx].lessons[this.lessonIdx];
       this.challengeIdx = lesson.challenges.length - 1;
-      document.getElementById('lesson-title').textContent = lesson.title;
-      document.getElementById('lesson-concept').textContent = lesson.concept || '';
+      this.$lesTitle.textContent = lesson.title;
+      this.$concept.textContent = lesson.concept || '';
     } else {
       return;
     }
     this.wrongAttempts = 0;
     this._renderChallenge();
     this._renderSidebar();
-    document.getElementById('terminal-input').focus();
+    this.$input.focus();
   }
 
   advanceChallenge() {
@@ -352,34 +364,28 @@ class LessonEngine {
       this._renderChallenge();
     }
 
-    this.wrongAttempts = 0;
-    document.getElementById('terminal-input').focus();
+    this.$input.focus();
   }
 
   // ─── DOM helpers ──────────────────────────────────────────────────────────
 
   _appendLine(html) {
-    const out = document.getElementById('terminal-output');
     const div = document.createElement('div');
-    div.className = 'font-terminal text-sm leading-relaxed';
+    div.className = 'font-terminal text-sm leading-relaxed whitespace-pre-wrap';
     div.innerHTML = html;
-    out.appendChild(div);
+    this.$out.appendChild(div);
   }
 
   _updatePrompt() {
-    document.getElementById('terminal-prompt').innerHTML = this.terminal.getPrompt();
+    this.$prompt.innerHTML = this.terminal.getPrompt();
   }
 
   _scrollDown() {
-    const body = document.getElementById('terminal-body');
-    body.scrollTop = body.scrollHeight;
+    this.$body.scrollTop = this.$body.scrollHeight;
   }
 
-  _esc(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+  printCompletions(html) {
+    this._appendLine(html);
+    this._scrollDown();
   }
 }

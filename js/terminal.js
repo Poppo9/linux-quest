@@ -151,15 +151,16 @@ class VirtualTerminal {
     if (longFormat) {
       const lines = [];
       const total = entries.reduce((s, [, n]) => s + (n.type === 'dir' ? 8 : Math.ceil((n.size || 0) / 512)), showHidden ? 16 : 0);
+      const sizeW = Math.max(4, ...entries.map(([, n]) => String(n.size || 4096).length));
       lines.push(`total ${total}`);
       if (showHidden) {
-        lines.push(`drwxr-xr-x  2 user user  4096 Jan 16 09:05 <span class="text-blue-400 font-bold">.</span>`);
-        lines.push(`drwxr-xr-x  3 user user  4096 Jan 10 08:00 <span class="text-blue-400 font-bold">..</span>`);
+        lines.push(`drwxr-xr-x  2 user user ${'4096'.padStart(sizeW)} Jan 16 09:05 <span class="text-blue-400 font-bold">.</span>`);
+        lines.push(`drwxr-xr-x  3 user user ${'4096'.padStart(sizeW)} Jan 10 08:00 <span class="text-blue-400 font-bold">..</span>`);
       }
       for (const [name, info] of entries) {
         const perms = info.perms || (info.type === 'dir' ? 'drwxr-xr-x' : '-rw-r--r--');
         const links = info.type === 'dir' ? ' 2' : ' 1';
-        const size = String(info.size || 4096).padStart(6);
+        const size = String(info.size || 4096).padStart(sizeW);
         const date = info.date || 'Jan  1 00:00';
         lines.push(`${perms} ${links} user user ${size} ${date} ${this._fmtName(name, info.type)}`);
       }
@@ -273,7 +274,8 @@ class VirtualTerminal {
       .map(([name, info]) => ({
         name,
         fullArg: argPrefix + name,
-        isDir: info.type === 'dir'
+        isDir: info.type === 'dir',
+        display: this._fmtName(name, info.type)
       }));
 
     return { type: 'path', matches: entries, partial: partialArg, cmdParts: trailingSpace ? parts : parts.slice(0, -1) };
@@ -323,4 +325,14 @@ class VirtualTerminal {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
   }
+}
+
+function commonPrefix(strings) {
+  if (!strings.length) return '';
+  let prefix = strings[0];
+  for (const s of strings.slice(1)) {
+    while (!s.startsWith(prefix)) prefix = prefix.slice(0, -1);
+    if (!prefix) break;
+  }
+  return prefix;
 }
