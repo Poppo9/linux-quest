@@ -183,30 +183,9 @@
       "lessons": []
     },
     {
-      "id": "permissions",
-      "title": "Permissions",
-      "icon": "🔐",
-      "locked": true,
-      "lessons": []
-    },
-    {
       "id": "search",
       "title": "Search & Find",
       "icon": "🔍",
-      "locked": true,
-      "lessons": []
-    },
-    {
-      "id": "processes",
-      "title": "Processes",
-      "icon": "⚙️",
-      "locked": true,
-      "lessons": []
-    },
-    {
-      "id": "piping",
-      "title": "Pipes & Redirection",
-      "icon": "🔀",
       "locked": true,
       "lessons": []
     },
@@ -218,16 +197,23 @@
       "lessons": []
     },
     {
-      "id": "networking",
-      "title": "Networking",
-      "icon": "🌐",
+      "id": "permissions",
+      "title": "Permissions & Ownership",
+      "icon": "🔐",
       "locked": true,
       "lessons": []
     },
     {
-      "id": "shell-scripting",
-      "title": "Shell Scripting",
-      "icon": "📜",
+      "id": "system-info",
+      "title": "System Information",
+      "icon": "⚙️",
+      "locked": true,
+      "lessons": []
+    },
+    {
+      "id": "session",
+      "title": "Session & Navigation",
+      "icon": "💻",
       "locked": true,
       "lessons": []
     }
