@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-slate-950">
+<html lang="en" class="bg-slate-950" style="font-size:120%">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -195,14 +195,12 @@
     document.getElementById('prev-btn').addEventListener('click', () => engine.prevChallenge());
     document.getElementById('next-btn').addEventListener('click', () => engine.advanceChallenge());
 
+    const SMART_RE = /[…“”‘’—–]/g;
+    const SMART_MAP = { '…': '...', '“': '"', '”': '"', '‘': "'", '’': "'", '—': '--', '–': '-' };
+
     // Collapse panel on first keystroke + strip smart punctuation
     input.addEventListener('input', () => {
-      const v = input.value
-        .replace(/…/g, '...')
-        .replace(/[""]/g, '"')
-        .replace(/['']/g, "'")
-        .replace(/—/g, '--')
-        .replace(/–/g, '-');
+      const v = input.value.replace(SMART_RE, ch => SMART_MAP[ch]);
       if (v !== input.value) input.value = v;
       if (input.value.length > 0) engine.collapsePanel();
     });
@@ -237,8 +235,7 @@
           if (common.length > result.partial.length) {
             input.value = common;
           } else if (input.value === tabPrev) {
-            engine._appendLine(result.matches.join('  '));
-            engine._scrollDown();
+            engine.printCompletions(result.matches.join('  '));
           }
         }
       } else if (result.type === 'path') {
@@ -249,13 +246,10 @@
           const common = commonPrefix(result.matches.map(m => m.fullArg));
           const newArg = common.length > result.partial.length ? common : result.partial;
           const newVal = result.cmdParts.join(' ') + ' ' + newArg;
-          if (newVal.length > input.value.trim().length) {
+          if (newVal !== input.value) {
             input.value = newVal;
           } else if (input.value.trim() === tabPrev) {
-            engine._appendLine(
-              result.matches.map(m => terminal._fmtName(m.name, m.isDir ? 'dir' : 'file')).join('  ')
-            );
-            engine._scrollDown();
+            engine.printCompletions(result.matches.map(m => m.display).join('  '));
           }
         }
       }
@@ -263,16 +257,7 @@
       tabPrev = input.value.trim();
     }
 
-    function commonPrefix(strings) {
-      if (!strings.length) return '';
-      let prefix = strings[0];
-      for (const s of strings.slice(1)) {
-        while (!s.startsWith(prefix)) prefix = prefix.slice(0, -1);
-        if (!prefix) break;
-      }
-      return prefix;
-    }
-  </script>
+</script>
 
 </body>
 </html>

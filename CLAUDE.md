@@ -39,7 +39,18 @@ python -m http.server 8080
 
 `VirtualTerminal` holds a virtual in-memory filesystem and current working directory. `execute(input)` parses the command, updates state (e.g. `cd` changes `this.cwd`), and returns `{ lines: string[], error?: bool, clear?: bool }` where lines are HTML strings with color spans.
 
-Commands implemented: `pwd`, `ls` (with `-l`, `-a`, `-la`/`-al`), `ll` (alias for `ls -la`), `cd`, `clear`, `help`.
+Commands implemented (39 total, registered in `this._commands` registry):
+- **Navigation**: `pwd`, `ls` (with `-l`, `-a`, `-la`/`-al`), `ll`, `cd`
+- **File operations**: `mv`, `cp`, `rm`, `mkdir`, `rmdir`, `touch`
+- **File content**: `cat`, `echo`, `head`, `tail`
+- **Text processing**: `sort`, `uniq`, `cut`, `wc`, `grep`
+- **Search**: `find` (with `-name`, `-type`)
+- **Permissions/ownership**: `chmod` (octal + symbolic), `chown`
+- **File metadata**: `stat`, `file`
+- **Disk**: `du`, `df`
+- **System info**: `uname`, `hostname`, `id`, `whoami`, `date`, `ps`, `env`, `printenv`
+- **Session**: `history`, `which`, `man`
+- **Terminal**: `clear`, `help`
 
 `getPrompt()` returns an HTML string ending with `$&nbsp;` (non-breaking space) so the trailing space is never collapsed by the browser when injected via `innerHTML`.
 
@@ -105,7 +116,9 @@ The `lessons.json` fetch includes a `?v=<timestamp>` cache-buster to avoid stale
 
 ## Adding new content
 
-To add a new lesson section: add an entry to `data/lessons.json` with `"locked": false` and populate `lessons[]`. To add a new command to the terminal simulator: add a `case` in `VirtualTerminal.execute()` and implement a `_<command>()` method. Add files/dirs to `_buildFs()`.
+To add a new lesson section: add an entry to `data/lessons.json` with `"locked": false` and populate `lessons[]`.
+
+To add a new command to the terminal simulator: add one entry to `this._commands` in the constructor, then implement `_<command>(args)`. No other changes needed — `execute()`, `help`, and tab completion all auto-discover from the registry. Add files/dirs to `_buildFs()` if the command needs test data; include a `content: [...]` array for commands like `cat`, `grep`, `sort` to work on them.
 
 ## Design
 
@@ -118,6 +131,18 @@ Dark palette: `slate-950` background, `slate-800` borders, `green-400` accent (t
 ---
 
 ## Planned (not yet implemented)
+
+### Sezione 9: Pipes & Redirection
+
+Richiede due interventi prima di poter scrivere le lezioni:
+
+1. **Tokenizer per argomenti quoted** — sostituire `input.split(/\s+/)` in `execute()` con un tokenizer che rispetti le virgolette (`"hello world"` → un token solo). Prerequisito anche per filenames con spazi.
+
+2. **Parser pipeline** — prima del dispatch, dividere l'input su `|`, `>`, `>>`, `<`. Eseguire ogni stage passando l'output del precedente come stdin al successivo. I comandi `grep`, `sort`, `uniq`, `cut`, `wc`, `head`, `tail`, `cat` devono accettare un parametro opzionale `stdin: string[]` quando non viene passato un file.
+
+Comandi da aggiungere al registry dopo il refactor: `tee`, `xargs`, `tr`, `sed` (base), `awk` (base).
+
+Stima effort: ~10h totali (3h tokenizer + parser, 2h stdin nei comandi esistenti, 2h `>` / `>>` / `<`, 3h testing).
 
 ### Deploy: Netlify
 Static site, no build step. Drop files, configure `netlify.toml`:

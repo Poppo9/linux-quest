@@ -19,6 +19,12 @@ body {
   50%       { opacity: 0; }
 }
 
+/* ── Terminal font rendering (consistent between input and output lines) ──── */
+.terminal-body {
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+}
+
 /* ── Terminal scrollbar ───────────────────────────────────────────────────── */
 .terminal-body::-webkit-scrollbar       { width: 4px; }
 .terminal-body::-webkit-scrollbar-track { background: transparent; }
@@ -52,7 +58,7 @@ body {
 }
 
 /* ── Smooth scrolling ────────────────────────────────────────────────────── */
-html { scroll-behavior: smooth; font-size: 120%; }
+html { scroll-behavior: smooth; }
 
 /* ── Collapsible challenge panel ─────────────────────────────────────────── */
 #challenge-panel-full {
