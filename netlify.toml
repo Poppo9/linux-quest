@@ -1,0 +1,19 @@
+[build]
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production]
+  command = ""
+
+[context.deploy-preview]
+  command = ""
+
+[context.branch-deploy]
+  command = ""
