@@ -11,7 +11,6 @@ try {
 let _currentUser   = null;
 let _isPremium     = false;
 let _providerToken = null; // GitHub OAuth token — present only in the SIGNED_IN session, not after refresh
-let _authChecked   = false; // true once INITIAL_SESSION/SIGNED_IN/SIGNED_OUT has fired
 
 const LS_PROGRESS_KEY = 'lq-progress';
 
@@ -201,10 +200,7 @@ function showGateModal(type) {
 // ─── Auth lifecycle ───────────────────────────────────────────────────────────
 
 function initAuth(onAuthChange) {
-  if (!_client) {
-    _authChecked = true;
-    return;
-  }
+  if (!_client) return;
   _client.auth.onAuthStateChange(async (event, session) => {
     // INITIAL_SESSION fires on page load when a session already exists (Supabase v2)
     // SIGNED_IN fires after a fresh login or OAuth redirect
@@ -212,9 +208,7 @@ function initAuth(onAuthChange) {
       if (_currentUser?.id === session.user.id) return; // already handled
 
       _currentUser   = session.user;
-      _isPremium     = false; // will be loaded by syncOnLogin → loadProfile
       _providerToken = session.provider_token || null;
-      _authChecked   = true;
 
       const local  = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
       const merged = await syncOnLogin(session.user.id, local);
@@ -228,15 +222,10 @@ function initAuth(onAuthChange) {
       }
 
       if (onAuthChange) onAuthChange('signed_in', session.user, merged);
-    } else if (event === 'INITIAL_SESSION' && !session?.user) {
-      // No session on page load — auth resolved as logged out
-      _authChecked = true;
-      _updateNavUI(null);
     } else if (event === 'SIGNED_OUT') {
       _currentUser   = null;
       _isPremium     = false;
       _providerToken = null;
-      _authChecked   = true;
       _updateNavUI(null);
       if (onAuthChange) onAuthChange('signed_out', null, null);
     }
@@ -263,8 +252,7 @@ function renderAuthUI() {
       </button>`;
     document.getElementById('nav-user-email').textContent = displayName;
     document.getElementById('auth-signout-btn').addEventListener('click', () => signOut());
-  } else if (_authChecked) {
-    // Only render Sign in once we know there's no active session — avoids flash on page load
+  } else {
     nav.innerHTML = `
       <button id="auth-signin-btn"
         class="text-xs font-terminal px-3 py-1.5 rounded transition-colors cursor-pointer
@@ -276,7 +264,6 @@ function renderAuthUI() {
       </button>`;
     document.getElementById('auth-signin-btn').addEventListener('click', () => _openAuthModal());
   }
-  // else: auth not yet resolved — leave nav empty
 
   _initModals();
 }
