@@ -1,32 +1,26 @@
 # TODO — linux-quest
 
-## Setup Supabase (manuale)
+## Prossimo: Stripe (pagamenti premium)
 
-- [ ] Copiare `js/config.example.js` → `js/config.js` e inserire `SUPABASE_URL` + `SUPABASE_ANON_KEY`
-- [ ] Eseguire SQL in Supabase SQL Editor (tabelle `progress`, `profiles`, trigger, RLS)
-- [ ] In Authentication > URL Configuration: impostare Site URL + redirect URL dominio Netlify
-- [ ] Aggiungere `SUPABASE_URL` e `SUPABASE_ANON_KEY` come env vars in Netlify
+- [ ] Creare account Stripe e prodotto "linux-quest Premium"
+- [ ] Implementare Stripe Checkout (link o hosted page) per acquisto premium
+- [ ] Creare Netlify Function per webhook Stripe → aggiorna `profiles.is_premium = true` via service_role key
+- [ ] Aggiungere `STRIPE_WEBHOOK_SECRET` e `SUPABASE_SERVICE_ROLE_KEY` come env vars in Netlify
+- [ ] Sostituire il modal "coming soon" con link reale a Stripe Checkout
+- [ ] Testare flusso completo: acquisto → webhook → sblocco sezioni premium
 
-## Auth & Tier
+## Deploy su Netlify
 
-- [ ] Testare flusso magic link in locale
-- [ ] Testare gate registration dopo `ls-flags`
-- [ ] Testare sync progresso cross-device
-- [ ] Testare merge localStorage → Supabase al login
-- [ ] Spostare gate registration a fine sezione "Navigating Directories" (prod)
+- [ ] Configurare dominio custom (opzionale)
+- [ ] Aggiornare Site URL e Redirect URL in Supabase → Authentication → URL Configuration con URL produzione
+- [ ] Verificare che il build command generi correttamente `js/config.js` da env vars
+- [ ] Testare flusso auth (signup/signin) in produzione
 
-## Contenuto lezioni
+## Supabase (futuro)
 
-- [ ] Scrivere lezioni sezione "File Operations" (`file-operations`)
-- [ ] Scrivere lezioni sezione "Reading File Content" (`file-content`)
-- [ ] Sbloccare sezioni man mano che il contenuto è pronto
-
-## Stripe (futuro)
-
-- [ ] Creare Netlify Function per webhook Stripe
-- [ ] Aggiornare `profiles.is_premium = true` via service_role key
-- [ ] Implementare Stripe Checkout per accesso premium
-- [ ] Implementare premium gate UI (ora mostra solo "coming soon")
+- [ ] Configurare custom SMTP (es. Resend, piano free: 3.000 email/mese) per superare il limite di 2 email/ora — necessario se si riabilita la conferma email in produzione
+- [ ] Aggiungere gestione sessione scaduta / refresh token
+- [ ] Valutare se spostare `localStorage` a fonte secondaria e Supabase a primaria
 
 ## Pipes & Redirection (futuro, ~10h)
 
@@ -35,8 +29,3 @@
 - [ ] Parametro `stdin` per `grep`, `sort`, `uniq`, `cut`, `wc`, `head`, `tail`, `cat`
 - [ ] Nuovi comandi: `tee`, `xargs`, `tr`, `sed` (base), `awk` (base)
 - [ ] Scrivere lezioni sezione "Pipes & Redirection"
-
-## Supabase (futuro)
-
-- [ ] Sostituire `localStorage` con Supabase come fonte primaria (ora è write-through cache)
-- [ ] Aggiungere gestione sessione scaduta / refresh token
