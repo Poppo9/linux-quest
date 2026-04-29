@@ -229,14 +229,17 @@ function _initModals() {
   if (authModal && !authModal.dataset.wired) {
     authModal.dataset.wired = '1';
 
-    authModal.addEventListener('click', e => {
-      if (e.target === authModal) authModal.classList.add('hidden');
-    });
-
-    document.getElementById('auth-cancel').addEventListener('click', () => {
+    const closeAuthModal = () => {
       authModal.classList.add('hidden');
       document.getElementById('auth-message').className = 'hidden';
+    };
+
+    authModal.addEventListener('click', e => {
+      if (e.target === authModal) closeAuthModal();
     });
+
+    document.getElementById('auth-cancel').addEventListener('click', closeAuthModal);
+    document.getElementById('auth-close-x').addEventListener('click', closeAuthModal);
 
     document.getElementById('auth-submit').addEventListener('click', _handleMagicLinkSubmit);
 
