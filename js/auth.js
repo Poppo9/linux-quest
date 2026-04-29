@@ -120,8 +120,8 @@ async function syncOnLogin(userId, localProgress) {
 // Returns the gate type that blocks access to a section, or null if accessible.
 // allSectionIds: ordered array of section IDs from lessons.json
 function getGateForSection(sectionId, allSectionIds) {
-  const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
-  const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;
+  const signedIn = !!_currentUser;
+  const premium  = _isPremium;
 
   const regIdx  = allSectionIds.indexOf(GATE_REGISTRATION.sectionId);
   const premIdx = allSectionIds.indexOf(GATE_PREMIUM.sectionId);
@@ -133,8 +133,8 @@ function getGateForSection(sectionId, allSectionIds) {
 }
 
 function checkGate(sectionId, lessonId, isLastLessonInSection) {
-  const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
-  const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;
+  const signedIn = !!_currentUser;
+  const premium  = _isPremium;
 
   // Registration wall: end of section 1
   if (!signedIn && sectionId === GATE_REGISTRATION.sectionId && isLastLessonInSection) {
@@ -183,9 +183,11 @@ function initAuth(onAuthChange) {
   });
 
   // Handle existing session on page load (covers magic link hash token too)
-  _client.auth.getSession().then(({ data }) => {
+  _client.auth.getSession().then(async ({ data }) => {
     if (data.session?.user) {
       _currentUser = data.session.user;
+      const local = JSON.parse(localStorage.getItem('lq-progress') || '{}');
+      await syncOnLogin(data.session.user.id, local);
       _updateNavUI(data.session.user);
     }
   });
@@ -199,11 +201,12 @@ function renderAuthUI() {
 
   if (_currentUser) {
     nav.innerHTML = `
-      <span class="text-xs font-terminal text-slate-400 hidden sm:inline">${_currentUser.email}</span>
+      <span id="nav-user-email" class="text-xs font-terminal text-slate-400 hidden sm:inline"></span>
       <button id="auth-signout-btn"
         class="text-xs font-terminal text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded transition-colors">
         Sign out
       </button>`;
+    document.getElementById('nav-user-email').textContent = _currentUser.email;
     document.getElementById('auth-signout-btn').addEventListener('click', () => signOut());
   } else {
     nav.innerHTML = `
@@ -328,19 +331,28 @@ async function _handleAuthSubmit() {
   submit.disabled    = true;
   submit.textContent = mode === 'signup' ? 'Creating…' : 'Signing in…';
 
+  if (mode === 'signup' && password.length < 8) {
+    msg.textContent = 'Password must be at least 8 characters.';
+    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-400';
+    msg.classList.remove('hidden');
+    setTimeout(() => { submit.disabled = false; submit.textContent = 'Create account'; }, 1000);
+    return;
+  }
+
   const { data, error } = mode === 'signup'
     ? await signUp(email, password)
     : await signIn(email, password);
-
-  submit.disabled    = false;
-  submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in';
 
   if (error) {
     msg.textContent = error.message;
     msg.className   = 'mt-4 text-sm text-center font-terminal text-red-400';
     msg.classList.remove('hidden');
+    setTimeout(() => { submit.disabled = false; submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in'; }, 3000);
     return;
   }
+
+  submit.disabled    = false;
+  submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in';
 
   if (mode === 'signup' && data?.user && !data?.session) {
     msg.textContent = 'Check your email to confirm your account.';

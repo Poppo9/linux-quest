@@ -275,7 +275,7 @@
       <input id="auth-email" type="email" placeholder="you@example.com"
         class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-3 focus:outline-none focus:border-green-400 transition-colors"
         autocomplete="email">
-      <input id="auth-password" type="password" placeholder="Password"
+      <input id="auth-password" type="password" placeholder="Password (min 8 characters)" minlength="8"
         class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-4 focus:outline-none focus:border-green-400 transition-colors"
         autocomplete="current-password">
       <button id="auth-submit"
@@ -308,20 +308,6 @@
       </button>
     </div>
   </div>
-
-  <!-- ── Debug panel (keep commented out) ──────────────────────────────── -->
-  <!--
-  <div id="debug-panel" style="position:fixed;bottom:12px;left:12px;z-index:9999;background:#1e293b;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;font-size:11px;color:#fbbf24;font-family:monospace;line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,0.5);">
-    <div style="font-weight:700;margin-bottom:4px;letter-spacing:.05em;">⚙ DEBUG</div>
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;">
-      <input type="checkbox" id="dbg-signed-in" style="accent-color:#4ade80;"> Signed in
-    </label>
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;margin-top:2px;">
-      <input type="checkbox" id="dbg-premium" style="accent-color:#4ade80;"> Premium account
-    </label>
-    <button id="dbg-refresh" style="margin-top:6px;width:100%;background:#f59e0b20;border:1px solid #f59e0b60;color:#fbbf24;border-radius:4px;padding:2px 0;cursor:pointer;font-family:monospace;font-size:11px;" onclick="engine._renderSidebar()">↺ refresh</button>
-  </div>
-  -->
 
   <script>
     // Runs after all modal HTML is in the DOM — _initModals() can now find the elements

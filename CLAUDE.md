@@ -27,7 +27,7 @@ js/auth.js              Supabase client, auth (email+password), progress sync, g
 js/config.js            Supabase credentials — gitignored, generated at build time (see netlify.toml)
 js/config.example.js    Template for local dev — copy to config.js and fill in values
 data/lessons.json       All lesson/challenge content
-netlify.toml            Build command + SPA redirect rule
+netlify.toml            Build command + CSP/security headers + SPA redirect rule
 TODO.md                 Backlog locale
 ```
 
@@ -134,7 +134,7 @@ The `lessons.json` fetch includes a `?v=<timestamp>` cache-buster to avoid stale
 
 ### Auth & tier gating (`js/auth.js`)
 
-Supabase email magic link auth. The module exposes global functions used by both HTML pages and `lessons.js`:
+Supabase email + password auth. The module exposes global functions used by both HTML pages and `lessons.js`:
 
 - `getUser()` / `isPremium()` — sync accessors for current session state
 - `signUp(email, password)` / `signIn(email, password)` / `signOut()` — auth actions; `signOut()` triggers `window.location.reload()`
@@ -177,7 +177,11 @@ A trigger `on_auth_user_created` auto-creates the `profiles` row on signup.
 
 The split is intentional: `renderAuthUI()` calls `_initModals()` which does `getElementById` on the modal elements, so they must exist in the DOM first.
 
-**Pitfall — modal element removal causes silent crash.** `_initModals()` wires event listeners on modal child elements (`auth-cancel`, `auth-close-x`, `auth-submit`, `auth-toggle`, `premium-close`, `premium-close-x`). If any of these elements is removed from the HTML without a matching update in `auth.js`, `getElementById` returns `null` and the `.addEventListener` call throws a `TypeError`. Because `renderAuthUI()` is called before `engine.init()` in the inline script, the crash prevents `engine.init()` from running and the sidebar never renders (all lessons disappear). Always use optional chaining (`?.addEventListener`) in `_initModals()` for non-critical elements, and update `auth.js` whenever modal HTML changes.
+**Pitfall — modal element removal causes silent crash.** `_initModals()` wires event listeners on modal child elements (`auth-close-x`, `auth-submit`, `auth-toggle`, `premium-close`, `premium-close-x`). If any of these elements is removed from the HTML without a matching update in `auth.js`, `getElementById` returns `null` and the `.addEventListener` call throws a `TypeError`. Because `renderAuthUI()` is called before `engine.init()` in the inline script, the crash prevents `engine.init()` from running and the sidebar never renders (all lessons disappear). Always use optional chaining (`?.addEventListener`) in `_initModals()` for non-critical elements, and update `auth.js` whenever modal HTML changes.
+
+**Security — gate bypass via DOM injection.** `getGateForSection()` and `checkGate()` must never read gate state from the DOM (e.g. debug checkboxes). They use only `_currentUser` and `_isPremium` module variables. Reintroducing `document.getElementById('dbg-*')` checks would allow anyone to bypass all gates by injecting an element with that ID via the browser console.
+
+**Security — email in nav must use `textContent`.** `renderAuthUI()` sets the user email via `document.getElementById('nav-user-email').textContent`, not via template literal injection into `innerHTML`. Never revert this to `${user.email}` inside a template string assigned to `innerHTML`.
 
 ## Adding new content
 
