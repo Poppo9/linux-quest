@@ -3,10 +3,7 @@
 // Body:    { github_token: string }
 // Returns: { starred: bool }
 //
-// Checks whether the authenticated Supabase user has starred Poppo9/linux-quest on GitHub.
-// On success, sets profiles.is_premium = true via service_role key.
-
-const { createClient } = require('@supabase/supabase-js');
+// Uses only native fetch (Node 18+) — no npm dependencies required.
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -26,14 +23,18 @@ exports.handler = async (event) => {
     };
   }
 
-  const adminClient = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  const SUPABASE_URL      = process.env.SUPABASE_URL;
+  const SERVICE_ROLE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  const { data: { user }, error: userError } = await adminClient.auth.getUser(jwt);
-  if (userError || !user) {
+  // Verify JWT via Supabase Auth REST API
+  const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      apikey: SERVICE_ROLE_KEY,
+    },
+  });
+
+  if (!userRes.ok) {
     return {
       statusCode: 401,
       headers: { 'Content-Type': 'application/json' },
@@ -41,6 +42,9 @@ exports.handler = async (event) => {
     };
   }
 
+  const user = await userRes.json();
+
+  // Check star status via GitHub API
   let starred = false;
   try {
     const ghRes = await fetch('https://api.github.com/user/starred/Poppo9/linux-quest', {
@@ -61,10 +65,16 @@ exports.handler = async (event) => {
   }
 
   if (starred) {
-    await adminClient
-      .from('profiles')
-      .update({ is_premium: true, premium_since: new Date().toISOString() })
-      .eq('id', user.id);
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        apikey: SERVICE_ROLE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ is_premium: true, premium_since: new Date().toISOString() }),
+    });
   }
 
   return {
