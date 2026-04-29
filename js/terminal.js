@@ -107,6 +107,18 @@ class VirtualTerminal {
                     '[ ] Read chapter 5',
                   ]
                 },
+                'temp.txt': {
+                  type: 'file', size: 32, perms: '-rw-r--r--', date: 'Jan 16 10:00',
+                  content: ['temporary file - safe to delete']
+                },
+                tmp: {
+                  type: 'dir', perms: 'drwxr-xr-x', date: 'Jan 16 10:00',
+                  children: {}
+                },
+                old: {
+                  type: 'dir', perms: 'drwxr-xr-x', date: 'Jan 10 08:00',
+                  children: {}
+                },
                 Documents: {
                   type: 'dir', perms: 'drwxr-xr-x', date: 'Jan 14 16:45',
                   children: {
@@ -138,6 +150,18 @@ class VirtualTerminal {
                         'Carol,78,C',
                         'Dave,91,A',
                         'Eve,88,B',
+                      ]
+                    },
+                    'duplicates.txt': {
+                      type: 'file', size: 64, perms: '-rw-r--r--', date: 'Jan 14 11:00',
+                      content: [
+                        'apple',
+                        'apple',
+                        'banana',
+                        'cherry',
+                        'cherry',
+                        'cherry',
+                        'date',
                       ]
                     },
                     projects: {
