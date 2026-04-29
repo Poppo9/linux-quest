@@ -200,7 +200,11 @@ function showGateModal(type) {
 function initAuth(onAuthChange) {
   if (!_client) return;
   _client.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
+    // INITIAL_SESSION fires on page load when a session already exists (Supabase v2)
+    // SIGNED_IN fires after a fresh login or OAuth redirect
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+      if (_currentUser?.id === session.user.id) return; // already handled
+
       _currentUser   = session.user;
       _providerToken = session.provider_token || null;
 
@@ -210,7 +214,7 @@ function initAuth(onAuthChange) {
 
       document.getElementById('auth-modal')?.classList.add('hidden');
 
-      // Auto-verify star on first OAuth login when provider_token is available
+      // Auto-verify star on fresh OAuth login when provider_token is available
       if (_providerToken && !_isPremium) {
         verifyGithubStar(_providerToken);
       }
@@ -222,17 +226,6 @@ function initAuth(onAuthChange) {
       _providerToken = null;
       _updateNavUI(null);
       if (onAuthChange) onAuthChange('signed_out', null, null);
-    }
-  });
-
-  // Restore existing session on page load
-  _client.auth.getSession().then(async ({ data }) => {
-    if (_currentUser) return;
-    if (data.session?.user) {
-      _currentUser = data.session.user;
-      const local = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
-      await syncOnLogin(data.session.user.id, local);
-      _updateNavUI(data.session.user);
     }
   });
 }
