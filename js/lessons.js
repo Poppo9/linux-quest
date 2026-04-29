@@ -128,12 +128,13 @@ class LessonEngine {
 
       const wrap = document.createElement('div');
       wrap.className = 'mb-1 pt-1 border-t border-slate-800/60';
+      wrap.dataset.sectionId = section.id;
 
       const header = document.createElement('div');
       header.className = `flex items-center gap-2 px-3 py-2 rounded ${isLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'}`;
       const badge = isLocked
         ? '<span class="text-slate-400 text-xs">🔒</span>'
-        : `<span class="text-slate-500 text-xs select-none">${isExpanded ? '▾' : '▸'}</span>`;
+        : `<span class="sidebar-chevron text-slate-500 text-xs select-none">${isExpanded ? '▾' : '▸'}</span>`;
       header.innerHTML = `
         <span class="text-base leading-none">${section.icon || '📄'}</span>
         <span class="text-sm font-semibold ${isLocked ? 'text-slate-500' : 'text-white'} flex-1 leading-tight">${section.title}</span>
@@ -141,18 +142,15 @@ class LessonEngine {
       `;
 
       if (!isLocked) {
-        header.addEventListener('click', () => {
-          // Accordion: open this section (or close if already open)
-          this._expandedSectionId = (this._expandedSectionId === section.id) ? null : section.id;
-          this._renderSidebar();
-        });
+        header.addEventListener('click', () => this._toggleSection(section.id));
       }
 
       wrap.appendChild(header);
 
-      if (!isLocked && isExpanded && section.lessons.length) {
+      // Always render lesson list; CSS transition handles open/close
+      if (!isLocked && section.lessons.length) {
         const list = document.createElement('div');
-        list.className = 'ml-3 mt-0.5 space-y-px';
+        list.className = `sidebar-lesson-list ml-3 space-y-px${isExpanded ? ' open' : ''}`;
 
         section.lessons.forEach((lesson, li) => {
           const done = this._isLessonComplete(section.id, lesson.id, lesson.challenges.length);
@@ -188,6 +186,17 @@ class LessonEngine {
       }
 
       this.$sidebar.appendChild(wrap);
+    });
+  }
+
+  // Toggle accordion without rebuilding the DOM (preserves CSS transition)
+  _toggleSection(sectionId) {
+    this._expandedSectionId = (this._expandedSectionId === sectionId) ? null : sectionId;
+    this.$sidebar.querySelectorAll('[data-section-id]').forEach(wrap => {
+      const open = wrap.dataset.sectionId === this._expandedSectionId;
+      wrap.querySelector('.sidebar-lesson-list')?.classList.toggle('open', open);
+      const chevron = wrap.querySelector('.sidebar-chevron');
+      if (chevron) chevron.textContent = open ? '▾' : '▸';
     });
   }
 
@@ -244,9 +253,14 @@ class LessonEngine {
     this.$enter.textContent = '';
     this.$enter.className = 'hidden';
 
-    // Prev button: disabled on very first challenge of first lesson
-    const isFirst = this.challengeIdx === 0 && this.lessonIdx === 0;
-    this.$prevBtn.disabled = isFirst;
+    // Prev button
+    const isFirstLesson   = this.lessonIdx === 0;
+    const isFirstSection  = this.sectionIdx === 0;
+    const isVeryFirst     = this.challengeIdx === 0 && isFirstLesson && isFirstSection;
+    this.$prevBtn.disabled = isVeryFirst;
+    this.$prevBtn.textContent = (this.challengeIdx === 0 && isFirstLesson && !isFirstSection)
+      ? '◀ Prev Section'
+      : '◀ Prev';
 
     // Next button: text changes at lesson boundary
     const isLastChallenge = this.challengeIdx >= total - 1;
@@ -376,6 +390,17 @@ class LessonEngine {
       this.challengeIdx = lesson.challenges.length - 1;
       this.$lesTitle.textContent = lesson.title;
       this.$concept.textContent = lesson.concept || '';
+    } else if (this.sectionIdx > 0) {
+      this.sectionIdx--;
+      this._expandedSectionId = this.sections[this.sectionIdx]?.id;
+      const prevSection = this.sections[this.sectionIdx];
+      this.lessonIdx = prevSection.lessons.length - 1;
+      this.challengeIdx = prevSection.lessons[this.lessonIdx].challenges.length - 1;
+      this.wrongAttempts = 0;
+      this._loadLesson();
+      this._renderSidebar();
+      this.$input.focus();
+      return;
     } else {
       return;
     }

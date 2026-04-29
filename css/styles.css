@@ -60,6 +60,16 @@ body {
 /* ── Smooth scrolling ────────────────────────────────────────────────────── */
 html { scroll-behavior: smooth; }
 
+/* ── Sidebar accordion animation ─────────────────────────────────────────── */
+.sidebar-lesson-list {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s ease;
+}
+.sidebar-lesson-list.open {
+  max-height: 1200px;
+}
+
 /* ── Collapsible challenge panel ─────────────────────────────────────────── */
 #challenge-panel-full {
   overflow: hidden;
