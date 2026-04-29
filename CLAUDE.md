@@ -206,7 +206,7 @@ Dark palette: `slate-950` background, `slate-800` borders, `green-400` accent (t
 
 **Fonts**: Geist (body/UI text) + JetBrains Mono (terminal, code, `font-terminal` class), both from Google Fonts with `display=swap`. `lessons.html` includes `<link rel="preconnect">` hints for `fonts.googleapis.com` and `fonts.gstatic.com` to reduce FOUT. Global `font-size: 120%` on `html` for proportional scaling of all rem-based Tailwind classes.
 
-**Layout (lessons.html)**: single combined header row with `◀ Prev` | lesson title + concept + progress | `Next ▶`. Sidebar section headers use `text-white font-semibold` with a top border separator between sections.
+**Layout (lessons.html)**: single combined header row — lesson title + concept on the left, then a right-aligned group `◀ Previous | progress | Next ▶`. Navbar has a home SVG icon + `linux-quest` logo linking to `index.html`. Sidebar section headers use `text-white font-semibold` with a top border separator between sections.
 
 ## Lesson content summary
 

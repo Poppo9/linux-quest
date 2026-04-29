@@ -7,6 +7,9 @@
 - [x] Rimosso link "Lessons" dal footer di `index.html`
 - [x] Bottone auth rinominato da "Sign out" a "Log out"
 - [x] Header lezioni: titolo + concept allineati a sinistra, challenge-progress a destra
+- [x] Bottoni navigazione: testi fissi "◀ Previous" / "Next ▶" (non più abbreviati o variabili)
+- [x] Navbar lezioni: aggiunta icona casa SVG a sinistra del logo linux-quest
+- [x] Creato comando `/update-memory` in `.claude/commands/update-memory.md`
 
 ## Prossimo: Stripe (pagamenti premium)
 
