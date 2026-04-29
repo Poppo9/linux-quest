@@ -53,12 +53,12 @@ cp js/config.example.js js/config.js
 
 `VirtualTerminal` holds a virtual in-memory filesystem and current working directory. `execute(input)` parses the command, updates state (e.g. `cd` changes `this.cwd`), and returns `{ lines: string[], error?: bool, clear?: bool }` where lines are HTML strings with color spans.
 
-Commands implemented (39 total, registered in `this._commands` registry):
+Commands implemented (43 total, registered in `this._commands` registry):
 - **Navigation**: `pwd`, `ls` (with `-l`, `-a`, `-la`/`-al`), `ll`, `cd`
 - **File operations**: `mv`, `cp`, `rm`, `mkdir`, `rmdir`, `touch`
 - **File content**: `cat`, `echo`, `head`, `tail`
-- **Text processing**: `sort`, `uniq`, `cut`, `wc`, `grep`
-- **Search**: `find` (with `-name`, `-type`)
+- **Text processing**: `sort`, `uniq`, `cut`, `wc`, `grep` (with `-i`, `-n`, `-r`/`-R`, combined flags)
+- **Search**: `find` (with `-name`, `-type`), `diff`, `locate`
 - **Permissions/ownership**: `chmod` (octal + symbolic), `chown`
 - **File metadata**: `stat`, `file`
 - **Disk**: `du`, `df`
@@ -146,14 +146,14 @@ Supabase email magic link auth. The module exposes global functions used by both
 
 **Gate positions** are hardcoded as constants at the top of `auth.js`:
 ```js
-const GATE_REGISTRATION = { sectionId: 'navigating-directories', lessonId: 'ls-flags' };
+const GATE_REGISTRATION = { sectionId: 'navigating-directories' };
 const GATE_PREMIUM      = { sectionId: 'file-content' };
 ```
-Change only these constants to move the gates.
+Change only these constants to move the gates. `getGateForSection(sectionId, allSectionIds)` computes the required tier for sidebar rendering by comparing section indices against the gate boundaries.
 
 **Tiers:**
-- `guest` — localStorage only; blocked after `ls-flags` (testing value; move to end of `navigating-directories` for prod)
-- `registered` (free) — Supabase magic link; blocked after `file-content` section
+- `guest` — localStorage only; blocked after end of `navigating-directories`
+- `registered` (free) — Supabase magic link; blocked after end of `file-content` section
 - `premium` — Stripe (not yet implemented); full access
 
 **Supabase tables:**
@@ -170,8 +170,12 @@ A trigger `on_auth_user_created` auto-creates the `profiles` row on signup.
 4. js/auth.js                  → global auth functions
 5. js/terminal.js              (lessons.html only)
 6. js/lessons.js               (lessons.html only)
-7. inline <script>             → initAuth, renderAuthUI, new LessonEngine...
+7. inline <script> (part 1)    → new VirtualTerminal, new LessonEngine (before modals)
+8. modal HTML                  → #auth-modal, #premium-modal (must precede init calls)
+9. inline <script> (part 2)    → renderAuthUI, initAuth, engine.init() (after modals)
 ```
+
+The split is intentional: `renderAuthUI()` calls `_initModals()` which does `getElementById` on the modal elements, so they must exist in the DOM first.
 
 ## Adding new content
 
@@ -187,15 +191,33 @@ Dark palette: `slate-950` background, `slate-800` borders, `green-400` accent (t
 
 **Layout (lessons.html)**: single combined header row with `◀ Prev` | lesson title + concept + progress | `Next ▶`. Sidebar section headers use `text-white font-semibold` with a top border separator between sections.
 
+## Lesson content summary
+
+All 8 sections are implemented and unlocked. 40 lessons, 84 challenges total.
+
+| Section | Lessons | Challenges |
+|---|---|---|
+| Navigating Directories | 7 | 14 |
+| File Operations | 6 | 12 |
+| Reading File Content | 4 | 8 |
+| Search & Find | 5 | 14 |
+| Text Processing | 4 | 8 |
+| Permissions & Ownership | 6 | 12 |
+| System Information | 5 | 10 |
+| Session & Navigation | 3 | 6 |
+
+Virtual filesystem notable files (used by lessons):
+- `/home/user/notes.txt`, `notes_v2.txt` — for grep, diff
+- `/home/user/todo.txt`, `temp.txt` — for rm, wc, sort
+- `/home/user/Documents/letter.txt`, `letter_v2.txt` — for cat, diff
+- `/home/user/Documents/scores.csv` — for cut, grep -n
+- `/home/user/Documents/duplicates.txt` — for uniq
+- `/home/user/Documents/projects/app.py`, `readme.md` — for grep -r, find
+- `/home/user/Downloads/setup.sh`, `archive.zip` — for chmod, file, rm
+
 ---
 
 ## Planned (not yet implemented)
-
-### Contenuto lezioni
-Sezioni ancora da scrivere (tutte `locked: true` in `lessons.json`):
-- **File Operations** (`file-operations`)
-- **Reading File Content** (`file-content`) — sblocca il premium gate
-- **Search & Find**, **Text Processing**, **Permissions & Ownership**, **System Information**, **Session & Navigation**
 
 ### Pipes & Redirection (~10h)
 
@@ -211,6 +233,3 @@ Stima effort: ~10h totali (3h tokenizer + parser, 2h stdin nei comandi esistenti
 
 ### Payments: Stripe
 Netlify Function per webhook Stripe → aggiorna `profiles.is_premium = true` via service_role key. Stripe Checkout per accesso premium alle sezioni avanzate. Il campo DB è già predisposto.
-
-### Gate produzione
-Spostare `GATE_REGISTRATION` da `ls-flags` a fine sezione `navigating-directories` (ultima lesson `absolute-paths`).
