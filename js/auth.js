@@ -5,7 +5,9 @@ let _currentUser = null;
 let _isPremium   = false;
 
 // Gate positions — update these constants to move the access gates
-const GATE_REGISTRATION = { sectionId: 'navigating-directories', lessonId: 'ls-flags' };
+// Registration wall fires at the end of section 1 (navigating-directories)
+// Premium wall fires at the end of section 3 (file-content)
+const GATE_REGISTRATION = { sectionId: 'navigating-directories' };
 const GATE_PREMIUM      = { sectionId: 'file-content' };
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
@@ -102,14 +104,15 @@ async function syncOnLogin(userId, localProgress) {
 // ─── Gate logic ───────────────────────────────────────────────────────────────
 
 function checkGate(sectionId, lessonId, isLastLessonInSection) {
-  if (!_currentUser
-      && sectionId === GATE_REGISTRATION.sectionId
-      && lessonId  === GATE_REGISTRATION.lessonId) {
+  const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
+  const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;
+
+  // Registration wall: end of section 1
+  if (!signedIn && sectionId === GATE_REGISTRATION.sectionId && isLastLessonInSection) {
     return 'registration';
   }
-  if (_currentUser && !_isPremium
-      && sectionId === GATE_PREMIUM.sectionId
-      && isLastLessonInSection) {
+  // Premium wall: end of section 3 (only for registered non-premium users)
+  if (signedIn && !premium && sectionId === GATE_PREMIUM.sectionId && isLastLessonInSection) {
     return 'premium';
   }
   return null;
@@ -117,9 +120,9 @@ function checkGate(sectionId, lessonId, isLastLessonInSection) {
 
 function showGateModal(type) {
   if (type === 'registration') {
-    document.getElementById('auth-modal-title').textContent = 'Create a free account to continue';
+    document.getElementById('auth-modal-title').textContent = '🔒 Sign in to continue';
     document.getElementById('auth-modal-desc').textContent =
-      'Sign up to unlock the rest of Navigating Directories — and more sections for free.';
+      'You\'ve completed the first section! Create a free account to unlock File Operations and all sections beyond. [PLACEHOLDER — registration not yet wired]';
     document.getElementById('auth-modal').classList.remove('hidden');
     document.getElementById('auth-email').focus();
   } else if (type === 'premium') {

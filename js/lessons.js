@@ -255,8 +255,9 @@ class LessonEngine {
     this.$nextBtn.className = BTN_NEXT_DEFAULT;
 
     if (isLastChallenge && isLastLesson) {
-      this.$nextBtn.textContent = 'Section complete ✓';
-      this.$nextBtn.disabled = true;
+      const isLastSection = this.sectionIdx >= this.sections.length - 1;
+      this.$nextBtn.textContent = isLastSection ? 'Course complete ✓' : 'Next Section →';
+      this.$nextBtn.disabled = isLastSection;
     } else if (isLastChallenge) {
       this.$nextBtn.textContent = 'Next Lesson →';
       this.$nextBtn.disabled = false;
@@ -389,10 +390,24 @@ class LessonEngine {
     const lesson = section.lessons[this.lessonIdx];
     const isLastChallenge = this.challengeIdx >= lesson.challenges.length - 1;
     const isLastLesson    = this.lessonIdx >= section.lessons.length - 1;
+    const isLastSection   = this.sectionIdx >= this.sections.length - 1;
 
-    if (isLastChallenge && isLastLesson) return;
+    // End of entire course
+    if (isLastChallenge && isLastLesson && isLastSection) return;
 
-    if (isLastChallenge) {
+    if (isLastChallenge && isLastLesson) {
+      // Cross-section transition: check gate
+      const gate = checkGate(section.id, lesson.id, true);
+      if (gate === 'registration') { showGateModal('registration'); return; }
+      if (gate === 'premium')      { showGateModal('premium');      return; }
+
+      this.sectionIdx++;
+      this.lessonIdx = 0;
+      this.challengeIdx = 0;
+      this._loadLesson();
+      this._renderSidebar();
+    } else if (isLastChallenge) {
+      // Within-section lesson transition
       const gate = checkGate(section.id, lesson.id, isLastLesson);
       if (gate === 'registration') { showGateModal('registration'); return; }
       if (gate === 'premium')      { showGateModal('premium');      return; }
