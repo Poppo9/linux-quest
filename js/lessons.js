@@ -110,12 +110,19 @@ class LessonEngine {
   // ─── Sidebar ──────────────────────────────────────────────────────────────
 
   _renderSidebar() {
-    // Initialise expanded section on first render
-    if (this._expandedSectionId === undefined) {
-      this._expandedSectionId = this.sections[this.sectionIdx]?.id ?? null;
-    }
-
     const sectionIds = this.sections.map(s => s.id);
+
+    // Initialise expanded section on first render: use current section if accessible,
+    // otherwise fall back to the last accessible section before it (handles auth gates).
+    if (this._expandedSectionId === undefined) {
+      let expandId = null;
+      for (let si = 0; si <= this.sectionIdx && si < this.sections.length; si++) {
+        const s = this.sections[si];
+        const gate = typeof getGateForSection === 'function' ? getGateForSection(s.id, sectionIds) : null;
+        if (!s.locked && gate === null) expandId = s.id;
+      }
+      this._expandedSectionId = expandId ?? this.sections[0]?.id ?? null;
+    }
     this.$sidebar.innerHTML = '';
 
     this.sections.forEach((section, si) => {
