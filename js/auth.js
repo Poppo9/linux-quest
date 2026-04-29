@@ -8,39 +8,89 @@ try {
   console.warn('Supabase config missing — running in offline/no-auth mode');
 }
 
-let _currentUser = null;
-let _isPremium   = false;
+let _currentUser   = null;
+let _isPremium     = false;
+let _providerToken = null; // GitHub OAuth token — present only in the SIGNED_IN session, not after refresh
 
 const LS_PROGRESS_KEY = 'lq-progress';
 
-// Gate positions — update these constants to move the access gates
-// Registration wall fires at the end of section 1 (navigating-directories)
-// Premium wall fires at the end of section 3 (file-content)
-const GATE_REGISTRATION = { sectionId: 'navigating-directories' };
-const GATE_PREMIUM      = { sectionId: 'file-content' };
+// Sections 1-3 are free. Section 4+ require a GitHub star on Poppo9/linux-quest.
+const GATE_STAR = { sectionId: 'file-content' };
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
 
-function getUser()    { return _currentUser; }
-function isPremium()  { return _isPremium; }
+function getUser()   { return _currentUser; }
+function isPremium() { return _isPremium; }
 
 // ─── Auth actions ─────────────────────────────────────────────────────────────
 
-async function signUp(email, password) {
-  if (!_client) return { error: { message: 'Auth not configured' } };
-  return await _client.auth.signUp({ email, password });
-}
-
-async function signIn(email, password) {
-  if (!_client) return { error: { message: 'Auth not configured' } };
-  return await _client.auth.signInWithPassword({ email, password });
+async function signInWithGitHub() {
+  if (!_client) return;
+  await _client.auth.signInWithOAuth({
+    provider: 'github',
+    options: { redirectTo: window.location.href },
+  });
 }
 
 async function signOut() {
-  _currentUser = null;
-  _isPremium   = false;
+  _currentUser   = null;
+  _isPremium     = false;
+  _providerToken = null;
   if (_client) await _client.auth.signOut();
   window.location.reload();
+}
+
+// ─── Star verification ────────────────────────────────────────────────────────
+
+// Calls the Netlify Function to verify the GitHub star and unlock premium.
+// Reloads the page on success so the sidebar re-renders with all sections unlocked.
+async function verifyGithubStar(githubToken) {
+  if (!_client) return false;
+
+  const btn = document.getElementById('premium-verify-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
+  try {
+    const { data: { session } } = await _client.auth.getSession();
+    const token = githubToken || session?.provider_token;
+
+    if (!token) {
+      // No provider_token available — re-trigger OAuth to get a fresh one.
+      // SIGNED_IN will fire again with provider_token and auto-verify.
+      await signInWithGitHub();
+      return false;
+    }
+
+    const res = await fetch('/.netlify/functions/verify-star', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ github_token: token }),
+    });
+
+    const json = await res.json();
+
+    if (json.starred) {
+      _isPremium = true;
+      window.location.reload();
+      return true;
+    }
+
+    if (btn) {
+      btn.disabled    = false;
+      btn.textContent = 'Not starred yet — try again';
+      setTimeout(() => {
+        if (btn) btn.textContent = "I've starred it — verify ✓";
+      }, 3000);
+    }
+    return false;
+  } catch (err) {
+    console.error('Star verification error:', err);
+    if (btn) { btn.disabled = false; btn.textContent = "I've starred it — verify ✓"; }
+    return false;
+  }
 }
 
 // ─── Progress sync ────────────────────────────────────────────────────────────
@@ -119,31 +169,18 @@ async function syncOnLogin(userId, localProgress) {
 
 // ─── Gate logic ───────────────────────────────────────────────────────────────
 
-// Returns the gate type that blocks access to a section, or null if accessible.
+// Returns the gate type blocking access to a section, or null if accessible.
 // allSectionIds: ordered array of section IDs from lessons.json
 function getGateForSection(sectionId, allSectionIds) {
-  const signedIn = !!_currentUser;
-  const premium  = _isPremium;
-
-  const regIdx  = allSectionIds.indexOf(GATE_REGISTRATION.sectionId);
-  const premIdx = allSectionIds.indexOf(GATE_PREMIUM.sectionId);
+  const starIdx = allSectionIds.indexOf(GATE_STAR.sectionId);
   const sIdx    = allSectionIds.indexOf(sectionId);
-
-  if (premIdx !== -1 && sIdx > premIdx && !premium) return 'premium';
-  if (regIdx  !== -1 && sIdx > regIdx  && !signedIn) return 'registration';
+  if (starIdx !== -1 && sIdx > starIdx && !_isPremium) return 'premium';
   return null;
 }
 
+// Called at lesson boundaries. Returns 'premium' if the star gate is hit, null otherwise.
 function checkGate(sectionId, lessonId, isLastLessonInSection) {
-  const signedIn = !!_currentUser;
-  const premium  = _isPremium;
-
-  // Registration wall: end of section 1
-  if (!signedIn && sectionId === GATE_REGISTRATION.sectionId && isLastLessonInSection) {
-    return 'registration';
-  }
-  // Premium wall: end of section 3 (only for registered non-premium users)
-  if (signedIn && !premium && sectionId === GATE_PREMIUM.sectionId && isLastLessonInSection) {
+  if (!_isPremium && sectionId === GATE_STAR.sectionId && isLastLessonInSection) {
     return 'premium';
   }
   return null;
@@ -151,19 +188,11 @@ function checkGate(sectionId, lessonId, isLastLessonInSection) {
 
 function _openAuthModal() {
   document.getElementById('auth-modal').classList.remove('hidden');
-  document.getElementById('auth-email').focus();
 }
 
+// type is always 'premium' now — kept for API compatibility with lessons.js
 function showGateModal(type) {
-  if (type === 'registration') {
-    _setAuthMode('signup');
-    document.getElementById('auth-modal-title').textContent = '🔒 Create a free account to continue';
-    document.getElementById('auth-modal-desc').textContent =
-      "You've completed the first section! Sign up to unlock File Operations and beyond.";
-    _openAuthModal();
-  } else if (type === 'premium') {
-    document.getElementById('premium-modal').classList.remove('hidden');
-  }
+  document.getElementById('premium-modal').classList.remove('hidden');
 }
 
 // ─── Auth lifecycle ───────────────────────────────────────────────────────────
@@ -172,24 +201,33 @@ function initAuth(onAuthChange) {
   if (!_client) return;
   _client.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
-      _currentUser = session.user;
+      _currentUser   = session.user;
+      _providerToken = session.provider_token || null;
+
       const local  = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
       const merged = await syncOnLogin(session.user.id, local);
       _updateNavUI(session.user);
-      const modal = document.getElementById('auth-modal');
-      if (modal) modal.classList.add('hidden');
+
+      document.getElementById('auth-modal')?.classList.add('hidden');
+
+      // Auto-verify star on first OAuth login when provider_token is available
+      if (_providerToken && !_isPremium) {
+        verifyGithubStar(_providerToken);
+      }
+
       if (onAuthChange) onAuthChange('signed_in', session.user, merged);
     } else if (event === 'SIGNED_OUT') {
-      _currentUser = null;
-      _isPremium   = false;
+      _currentUser   = null;
+      _isPremium     = false;
+      _providerToken = null;
       _updateNavUI(null);
       if (onAuthChange) onAuthChange('signed_out', null, null);
     }
   });
 
-  // Handle existing session on page load (covers magic link hash token too)
+  // Restore existing session on page load
   _client.auth.getSession().then(async ({ data }) => {
-    if (_currentUser) return; // already handled by onAuthStateChange
+    if (_currentUser) return;
     if (data.session?.user) {
       _currentUser = data.session.user;
       const local = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
@@ -206,6 +244,7 @@ function renderAuthUI() {
   if (!nav) return;
 
   if (_currentUser) {
+    const displayName = _currentUser.user_metadata?.user_name || _currentUser.email || '';
     nav.innerHTML = `
       <span id="nav-user-email" class="text-xs font-terminal text-slate-500 dark:text-slate-400 hidden sm:inline"></span>
       <button id="auth-signout-btn"
@@ -216,7 +255,7 @@ function renderAuthUI() {
                hover:border-slate-400 dark:hover:border-slate-500">
         Log out
       </button>`;
-    document.getElementById('nav-user-email').textContent = _currentUser.email;
+    document.getElementById('nav-user-email').textContent = displayName;
     document.getElementById('auth-signout-btn').addEventListener('click', () => signOut());
   } else {
     nav.innerHTML = `
@@ -228,10 +267,7 @@ function renderAuthUI() {
                hover:border-slate-400 dark:hover:border-slate-500">
         Sign in
       </button>`;
-    document.getElementById('auth-signin-btn').addEventListener('click', () => {
-      _setAuthMode('signin');
-      _openAuthModal();
-    });
+    document.getElementById('auth-signin-btn').addEventListener('click', () => _openAuthModal());
   }
 
   _initModals();
@@ -242,37 +278,18 @@ function _updateNavUI(user) {
 }
 
 function _initModals() {
-  // Wire modals only once using a data attribute flag
   const authModal = document.getElementById('auth-modal');
   if (authModal && !authModal.dataset.wired) {
     authModal.dataset.wired = '1';
 
-    const closeAuthModal = () => {
-      authModal.classList.add('hidden');
-      document.getElementById('auth-message').className = 'hidden';
-    };
+    const closeAuthModal = () => authModal.classList.add('hidden');
 
     authModal.addEventListener('click', e => {
       if (e.target === authModal) closeAuthModal();
     });
 
-    document.getElementById('auth-cancel')?.addEventListener('click', closeAuthModal);
-    document.getElementById('auth-close-x').addEventListener('click', closeAuthModal);
-
-    document.getElementById('auth-submit').addEventListener('click', _handleAuthSubmit);
-
-    document.getElementById('auth-toggle').addEventListener('click', () => {
-      const current = document.getElementById('auth-modal').dataset.mode || 'signin';
-      _setAuthMode(current === 'signin' ? 'signup' : 'signin');
-    });
-
-    document.getElementById('auth-email').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('auth-password').focus();
-    });
-
-    document.getElementById('auth-password').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('auth-submit').click();
-    });
+    document.getElementById('auth-close-x')?.addEventListener('click', closeAuthModal);
+    document.getElementById('auth-github-btn')?.addEventListener('click', () => signInWithGitHub());
   }
 
   const premiumModal = document.getElementById('premium-modal');
@@ -285,91 +302,17 @@ function _initModals() {
       if (e.target === premiumModal) closePremiumModal();
     });
 
-    document.getElementById('premium-close').addEventListener('click', closePremiumModal);
-    document.getElementById('premium-close-x').addEventListener('click', closePremiumModal);
+    document.getElementById('premium-close')?.addEventListener('click', closePremiumModal);
+    document.getElementById('premium-close-x')?.addEventListener('click', closePremiumModal);
+    document.getElementById('premium-verify-btn')?.addEventListener('click', () => verifyGithubStar());
   }
 
-  // Escape closes whichever modal is open
   if (!document.body.dataset.escWired) {
     document.body.dataset.escWired = '1';
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       document.getElementById('auth-modal')?.classList.add('hidden');
       document.getElementById('premium-modal')?.classList.add('hidden');
-      document.getElementById('auth-message') && (document.getElementById('auth-message').className = 'hidden');
     });
   }
-}
-
-function _setAuthMode(mode) {
-  const modal      = document.getElementById('auth-modal');
-  const title      = document.getElementById('auth-modal-title');
-  const desc       = document.getElementById('auth-modal-desc');
-  const submit     = document.getElementById('auth-submit');
-  const toggleText = document.getElementById('auth-toggle-text');
-  const toggleBtn  = document.getElementById('auth-toggle');
-  const msg        = document.getElementById('auth-message');
-  if (!modal) return;
-
-  modal.dataset.mode = mode;
-  if (msg) msg.className = 'hidden';
-
-  if (mode === 'signup') {
-    title.textContent      = 'Create your account';
-    desc.textContent       = 'Free forever for the first two sections.';
-    submit.textContent     = 'Create account';
-    toggleText.textContent = 'Already have an account?';
-    toggleBtn.textContent  = 'Sign in';
-    document.getElementById('auth-password').autocomplete = 'new-password';
-  } else {
-    title.textContent      = 'Sign in to linux-quest';
-    desc.textContent       = 'Welcome back.';
-    submit.textContent     = 'Sign in';
-    toggleText.textContent = "Don't have an account?";
-    toggleBtn.textContent  = 'Create one';
-    document.getElementById('auth-password').autocomplete = 'current-password';
-  }
-}
-
-async function _handleAuthSubmit() {
-  const email    = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const submit   = document.getElementById('auth-submit');
-  const msg      = document.getElementById('auth-message');
-  const mode     = document.getElementById('auth-modal').dataset.mode || 'signin';
-
-  if (!email || !password) return;
-
-  submit.disabled    = true;
-  submit.textContent = mode === 'signup' ? 'Creating…' : 'Signing in…';
-
-  if (mode === 'signup' && password.length < 8) {
-    msg.textContent = 'Password must be at least 8 characters.';
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-600 dark:text-red-400';
-    msg.classList.remove('hidden');
-    setTimeout(() => { submit.disabled = false; submit.textContent = 'Create account'; }, 1000);
-    return;
-  }
-
-  const { data, error } = mode === 'signup'
-    ? await signUp(email, password)
-    : await signIn(email, password);
-
-  if (error) {
-    msg.textContent = error.message;
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-600 dark:text-red-400';
-    msg.classList.remove('hidden');
-    setTimeout(() => { submit.disabled = false; submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in'; }, 3000);
-    return;
-  }
-
-  submit.disabled    = false;
-  submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in';
-
-  if (mode === 'signup' && data?.user && !data?.session) {
-    msg.textContent = 'Check your email to confirm your account.';
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-green-600 dark:text-green-400';
-    msg.classList.remove('hidden');
-  }
-  // If session exists (email confirmation off), SIGNED_IN fires automatically
 }

@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **HTML + Tailwind CSS** via CDN (`cdn.tailwindcss.com`) — build step only for config generation
 - **Vanilla JavaScript** — no framework
 - **JSON** for lesson content (`data/lessons.json`) — add content without touching JS
-- **Supabase** — auth (email + password) + progress sync + user profiles
+- **Supabase** — auth (GitHub OAuth) + progress sync + user profiles
 - Game progress stored in `localStorage` (write-through cache) and synced to Supabase when logged in
 - **Netlify** — static hosting, build command generates `js/config.js` from env vars
 
@@ -23,7 +23,8 @@ lessons.html            Interactive lesson page
 css/styles.css          Custom animations, terminal styles, font imports, global scale
 js/terminal.js          VirtualTerminal class — simulated filesystem + command execution
 js/lessons.js           LessonEngine class — loads JSON, validates input, tracks progress
-js/auth.js              Supabase client, auth (email+password), progress sync, gate logic, nav UI
+js/auth.js              Supabase client, GitHub OAuth, star verification, progress sync, gate logic, nav UI
+netlify/functions/verify-star.js  Netlify Function: checks GitHub star → sets profiles.is_premium
 js/config.js            Supabase credentials — gitignored, generated at build time (see netlify.toml)
 js/config.example.js    Template for local dev — copy to config.js and fill in values
 data/lessons.json       All lesson/challenge content
@@ -134,31 +135,48 @@ The `lessons.json` fetch includes a `?v=<timestamp>` cache-buster to avoid stale
 
 ### Auth & tier gating (`js/auth.js`)
 
-Supabase email + password auth. The module exposes global functions used by both HTML pages and `lessons.js`:
+GitHub OAuth via Supabase. The module exposes global functions used by both HTML pages and `lessons.js`:
 
 - `getUser()` / `isPremium()` — sync accessors for current session state
-- `signUp(email, password)` / `signIn(email, password)` / `signOut()` — auth actions; `signOut()` triggers `window.location.reload()`
-- `initAuth(onAuthChange)` — registers `onAuthStateChange` listener; call once per page. On `SIGNED_IN` runs `syncOnLogin` (merge local + remote progress, load profile) and fires `onAuthChange('signed_in', user, mergedProgress)`.
-- `renderAuthUI()` — injects "Sign in" or "email + Log out" into `#nav-auth`; wires modals on first call (idempotent via `data-wired` flag).
-- `checkGate(sectionId, lessonId, isLastLessonInSection)` — returns `null`, `'registration'`, or `'premium'`
-- `showGateModal(type)` — shows auth modal (with gate-specific copy) or premium modal
+- `signInWithGitHub()` / `signOut()` — auth actions; `signOut()` triggers `window.location.reload()`
+- `verifyGithubStar(githubToken?)` — calls `/.netlify/functions/verify-star`; reloads on success. If no `provider_token` is available (page refresh), re-triggers OAuth to get a fresh one.
+- `initAuth(onAuthChange)` — registers `onAuthStateChange` listener; call once per page. On `SIGNED_IN` runs `syncOnLogin` (merge local + remote progress, load profile), auto-calls `verifyGithubStar` if `provider_token` is present and `!isPremium`, then fires `onAuthChange('signed_in', user, mergedProgress)`.
+- `renderAuthUI()` — injects "Sign in" or "GitHub username + Log out" into `#nav-auth`; wires modals on first call (idempotent via `data-wired` flag).
+- `checkGate(sectionId, lessonId, isLastLessonInSection)` — returns `null` or `'premium'`
+- `showGateModal(type)` — shows the star-gate premium modal (type kept for API compatibility)
 - `pushProgressRow(userId, sId, lId, idx)` — upserts a single row in Supabase `progress` table
 
-**Gate positions** are hardcoded as constants at the top of `auth.js`:
+**Gate position** — single constant at the top of `auth.js`:
 ```js
-const GATE_REGISTRATION = { sectionId: 'navigating-directories' };
-const GATE_PREMIUM      = { sectionId: 'file-content' };
+const GATE_STAR = { sectionId: 'file-content' };
 ```
-Change only these constants to move the gates. `getGateForSection(sectionId, allSectionIds)` computes the required tier for sidebar rendering by comparing section indices against the gate boundaries.
+Sections 1-3 (up to and including `file-content`) are free. Sections 4-8 require a GitHub star.
+`getGateForSection(sectionId, allSectionIds)` computes the lock state for sidebar rendering.
 
 **Tiers:**
-- `guest` — localStorage only; blocked after end of `navigating-directories`
-- `registered` (free) — Supabase email + password; blocked after end of `file-content` section
-- `premium` — Stripe (not yet implemented); full access
+- `guest` — localStorage only; sections 1-3 free; blocked at end of `file-content`
+- `starred` — GitHub OAuth + has starred `Poppo9/linux-quest`; full access (`is_premium = true` in DB)
+
+**Star verification flow:**
+1. User completes section 3 → gate fires → star modal shown
+2. User clicks "⭐ Star on GitHub" → opens repo in new tab
+3. User clicks "I've starred it — verify ✓" → calls `verifyGithubStar()`
+4. If no `provider_token` (page refresh): re-triggers OAuth → `SIGNED_IN` fires with new token → auto-verify
+5. Netlify Function checks GitHub API → if starred → `profiles.is_premium = true` → page reloads
+6. On subsequent loads: `is_premium` read from DB, no re-verification needed
+
+**`provider_token` lifecycle:** the GitHub OAuth token is present in `session.provider_token` only in the `SIGNED_IN` event (and immediately after OAuth redirect). After a page refresh, `getSession()` does NOT return `provider_token`. This is why `verifyGithubStar` re-triggers OAuth when the token is absent.
+
+**Netlify Function (`netlify/functions/verify-star.js`):**
+- POST with `Authorization: Bearer <supabase_access_token>` and body `{ github_token }`
+- Verifies the Supabase JWT via `adminClient.auth.getUser(jwt)` (service_role client)
+- Calls `GET https://api.github.com/user/starred/Poppo9/linux-quest` with the GitHub token (204 = starred)
+- If starred: `UPDATE profiles SET is_premium = true WHERE id = user_id`
+- Env vars required: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 
 **Supabase tables:**
 - `progress(user_id, section_id, lesson_id, challenge_idx, completed_at)` — RLS: users own their rows
-- `profiles(id, is_premium, premium_since, stripe_customer_id)` — `is_premium` is updated only by service_role (future Stripe webhook); users can SELECT/INSERT their own row but not UPDATE
+- `profiles(id, is_premium, premium_since)` — `is_premium` updated only by service_role via Netlify Function; users can SELECT/INSERT their own row but not UPDATE
 
 A trigger `on_auth_user_created` auto-creates the `profiles` row on signup.
 
@@ -177,11 +195,11 @@ A trigger `on_auth_user_created` auto-creates the `profiles` row on signup.
 
 The split is intentional: `renderAuthUI()` calls `_initModals()` which does `getElementById` on the modal elements, so they must exist in the DOM first.
 
-**Pitfall — modal element removal causes silent crash.** `_initModals()` wires event listeners on modal child elements (`auth-close-x`, `auth-submit`, `auth-toggle`, `premium-close`, `premium-close-x`). If any of these elements is removed from the HTML without a matching update in `auth.js`, `getElementById` returns `null` and the `.addEventListener` call throws a `TypeError`. Because `renderAuthUI()` is called before `engine.init()` in the inline script, the crash prevents `engine.init()` from running and the sidebar never renders (all lessons disappear). Always use optional chaining (`?.addEventListener`) in `_initModals()` for non-critical elements, and update `auth.js` whenever modal HTML changes.
+**Pitfall — modal element removal causes silent crash.** `_initModals()` wires event listeners on modal child elements (`auth-close-x`, `auth-github-btn`, `premium-close`, `premium-close-x`, `premium-verify-btn`). If any of these elements is removed from the HTML without a matching update in `auth.js`, `getElementById` returns `null` and the `.addEventListener` call throws a `TypeError`. Because `renderAuthUI()` is called before `engine.init()` in the inline script, the crash prevents `engine.init()` from running and the sidebar never renders (all lessons disappear). Always use optional chaining (`?.addEventListener`) in `_initModals()`, and update `auth.js` whenever modal HTML changes.
 
-**Security — gate bypass via DOM injection.** `getGateForSection()` and `checkGate()` must never read gate state from the DOM (e.g. debug checkboxes). They use only `_currentUser` and `_isPremium` module variables. Reintroducing `document.getElementById('dbg-*')` checks would allow anyone to bypass all gates by injecting an element with that ID via the browser console.
+**Security — gate bypass via DOM injection.** `getGateForSection()` and `checkGate()` must never read gate state from the DOM. They use only `_currentUser` and `_isPremium` module variables.
 
-**Security — email in nav must use `textContent`.** `renderAuthUI()` sets the user email via `document.getElementById('nav-user-email').textContent`, not via template literal injection into `innerHTML`. Never revert this to `${user.email}` inside a template string assigned to `innerHTML`.
+**Security — username in nav must use `textContent`.** `renderAuthUI()` sets the GitHub username via `document.getElementById('nav-user-email').textContent`, not via template literal injection into `innerHTML`.
 
 ## Adding new content
 
@@ -250,5 +268,9 @@ Comandi da aggiungere al registry dopo il refactor: `tee`, `xargs`, `tr`, `sed` 
 
 Stima effort: ~10h totali (3h tokenizer + parser, 2h stdin nei comandi esistenti, 2h `>` / `>>` / `<`, 3h testing).
 
-### Payments: Stripe
-Netlify Function per webhook Stripe → aggiorna `profiles.is_premium = true` via service_role key. Stripe Checkout per accesso premium alle sezioni avanzate. Il campo DB è già predisposto.
+### GitHub Star gate — setup pendente
+Il codice è implementato. Manca solo la configurazione esterna (vedi TODO.md):
+- Abilitare GitHub OAuth provider in Supabase dashboard
+- Creare GitHub OAuth App e aggiungere redirect URLs
+- Aggiungere `SUPABASE_SERVICE_ROLE_KEY` come env var in Netlify
+- Rimuovere colonna `stripe_customer_id` da `profiles` in Supabase (SQL editor)
