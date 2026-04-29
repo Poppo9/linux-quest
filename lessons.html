@@ -164,6 +164,11 @@
 
     engine.init();
 
+    // Re-render sidebar immediately when debug checkboxes change
+    ['dbg-signed-in', 'dbg-premium'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => engine._renderSidebar());
+    });
+
     const input = document.getElementById('terminal-input');
     const cmdHistory = [];
     let histIdx = -1;
