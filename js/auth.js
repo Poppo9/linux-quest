@@ -11,6 +11,8 @@ try {
 let _currentUser = null;
 let _isPremium   = false;
 
+const LS_PROGRESS_KEY = LS_PROGRESS_KEY;
+
 // Gate positions — update these constants to move the access gates
 // Registration wall fires at the end of section 1 (navigating-directories)
 // Premium wall fires at the end of section 3 (file-content)
@@ -69,7 +71,7 @@ async function pushProgressRow(userId, sectionId, lessonId, challengeIdx) {
 }
 
 function _deepUnion(a, b) {
-  const result = JSON.parse(JSON.stringify(a));
+  const result = structuredClone(a);
   for (const sId of Object.keys(b)) {
     if (!result[sId]) result[sId] = {};
     for (const lId of Object.keys(b[sId])) {
@@ -99,7 +101,7 @@ async function syncOnLogin(userId, localProgress) {
   await loadProfile(userId);
   const remote = await loadRemoteProgress(userId);
   const merged = _deepUnion(localProgress, remote);
-  localStorage.setItem('lq-progress', JSON.stringify(merged));
+  localStorage.setItem(LS_PROGRESS_KEY, JSON.stringify(merged));
 
   const pushes = [];
   for (const sId of Object.keys(merged)) {
@@ -147,14 +149,18 @@ function checkGate(sectionId, lessonId, isLastLessonInSection) {
   return null;
 }
 
+function _openAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.getElementById('auth-email').focus();
+}
+
 function showGateModal(type) {
   if (type === 'registration') {
     _setAuthMode('signup');
     document.getElementById('auth-modal-title').textContent = '🔒 Create a free account to continue';
     document.getElementById('auth-modal-desc').textContent =
       "You've completed the first section! Sign up to unlock File Operations and beyond.";
-    document.getElementById('auth-modal').classList.remove('hidden');
-    document.getElementById('auth-email').focus();
+    _openAuthModal();
   } else if (type === 'premium') {
     document.getElementById('premium-modal').classList.remove('hidden');
   }
@@ -167,10 +173,9 @@ function initAuth(onAuthChange) {
   _client.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
-      const local  = JSON.parse(localStorage.getItem('lq-progress') || '{}');
+      const local  = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
       const merged = await syncOnLogin(session.user.id, local);
       _updateNavUI(session.user);
-      // Close auth modal on successful login
       const modal = document.getElementById('auth-modal');
       if (modal) modal.classList.add('hidden');
       if (onAuthChange) onAuthChange('signed_in', session.user, merged);
@@ -184,9 +189,10 @@ function initAuth(onAuthChange) {
 
   // Handle existing session on page load (covers magic link hash token too)
   _client.auth.getSession().then(async ({ data }) => {
+    if (_currentUser) return; // already handled by onAuthStateChange
     if (data.session?.user) {
       _currentUser = data.session.user;
-      const local = JSON.parse(localStorage.getItem('lq-progress') || '{}');
+      const local = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
       await syncOnLogin(data.session.user.id, local);
       _updateNavUI(data.session.user);
     }
@@ -216,8 +222,7 @@ function renderAuthUI() {
       </button>`;
     document.getElementById('auth-signin-btn').addEventListener('click', () => {
       _setAuthMode('signin');
-      document.getElementById('auth-modal').classList.remove('hidden');
-      document.getElementById('auth-email').focus();
+      _openAuthModal();
     });
   }
 
@@ -225,7 +230,6 @@ function renderAuthUI() {
 }
 
 function _updateNavUI(user) {
-  _currentUser = user;
   renderAuthUI();
 }
 
