@@ -172,50 +172,731 @@
       "id": "file-operations",
       "title": "File Operations",
       "icon": "📄",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "touch",
+          "title": "Creating files (touch)",
+          "concept": "Before you can write to a file, it needs to exist. touch creates it instantly.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "touch: Create an empty file\n\ntouch creates a new empty file if it doesn't already exist. If the file does exist, touch updates its \"last modified\" timestamp without changing its contents.\n\nThe name comes from the idea of \"touching\" a file to update its timestamp, but in practice it's mostly used to quickly create placeholder files.\n\nSyntax:  touch <filename>",
+              "instruction": "Create an empty file called memo.txt in your home directory.",
+              "expected_commands": ["touch memo.txt"],
+              "hint": "touch followed by the filename: touch memo.txt",
+              "success_message": "✓ memo.txt created! Verify it with: ls"
+            },
+            {
+              "explanation": "touch with a path\n\nYou can pass a path to touch, not just a filename. This lets you create a file directly inside another directory without navigating there first.\n\nExample:\n  touch Documents/notes2.txt  creates notes2.txt inside Documents/\n\nThe parent directory must already exist; touch won't create directories for you.\n\nSyntax:  touch <path/to/filename>",
+              "instruction": "Create a file called log.txt inside the Documents directory.",
+              "expected_commands": ["touch Documents/log.txt"],
+              "hint": "Use a relative path: touch Documents/log.txt",
+              "success_message": "✓ log.txt created inside Documents/. You can create files anywhere with touch!"
+            }
+          ]
+        },
+        {
+          "id": "mkdir",
+          "title": "Creating directories (mkdir)",
+          "concept": "Directories let you organise files into logical groups. mkdir creates them on demand.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "mkdir: Make Directory\n\nCreates a new directory at the path you specify. The directory must not already exist, and the parent directory must be present.\n\nAfter creating it, the directory is empty. You can then move files into it with mv, or create new files with touch.\n\nSyntax:  mkdir <directory_name>",
+              "instruction": "Create a new directory called Projects in your home directory.",
+              "expected_commands": ["mkdir Projects"],
+              "hint": "mkdir followed by the name: mkdir Projects",
+              "success_message": "✓ Projects/ created! Check it with: ls"
+            },
+            {
+              "explanation": "mkdir -p: Create nested directories\n\nBy default, mkdir fails if any part of the path doesn't exist:\n  mkdir a/b/c   fails if a/ or a/b/ don't exist\n\nThe -p flag (parents) creates every missing directory along the path, all at once:\n  mkdir -p a/b/c   creates a/, a/b/, and a/b/c/ in one step\n\nThis is extremely common in scripts and automation.\n\nSyntax:  mkdir -p <nested/path>",
+              "instruction": "Create the nested directory structure workspace/src — both directories at once.",
+              "expected_commands": ["mkdir -p workspace/src"],
+              "hint": "Use mkdir -p for nested directories: mkdir -p workspace/src",
+              "success_message": "✓ workspace/ and workspace/src/ created in one command!"
+            }
+          ]
+        },
+        {
+          "id": "cp",
+          "title": "Copying files (cp)",
+          "concept": "cp duplicates a file. The original stays untouched; you get a fresh copy.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "cp: Copy\n\nCreates an exact copy of a file at a new location. The source file is not affected.\n\nTwo forms:\n  cp source dest_file   copies source to a new file called dest_file\n  cp source dest_dir/   copies source into dest_dir, keeping the original name\n\nSyntax:  cp <source> <destination>",
+              "instruction": "Create a backup of notes.txt called notes_backup.txt.",
+              "expected_commands": ["cp notes.txt notes_backup.txt"],
+              "hint": "cp source destination: cp notes.txt notes_backup.txt",
+              "success_message": "✓ notes_backup.txt created. notes.txt is untouched."
+            },
+            {
+              "explanation": "cp to a different directory\n\nWhen the destination is an existing directory, cp places the copy inside that directory under the same filename.\n\nExample:\n  cp report.txt /tmp/   creates /tmp/report.txt\n\nYou can also rename while moving:\n  cp report.txt /tmp/backup_report.txt\n\nSyntax:  cp <source> <destination_dir>/",
+              "instruction": "Copy Documents/letter.txt into the Downloads directory.",
+              "expected_commands": ["cp Documents/letter.txt Downloads/", "cp Documents/letter.txt Downloads"],
+              "hint": "cp source destination_dir: cp Documents/letter.txt Downloads/",
+              "success_message": "✓ letter.txt now exists in both Documents/ and Downloads/!"
+            }
+          ]
+        },
+        {
+          "id": "mv",
+          "title": "Moving & renaming (mv)",
+          "concept": "mv moves files between directories. When source and destination are in the same place, it's a rename.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "mv: Move (or rename)\n\nmv moves a file from one location to another. Unlike cp, the original is removed.\n\nWhen both source and destination are in the same directory, the file stays in place but gets a new name — this is how you rename files in Linux (there's no separate rename command).\n\nSyntax:  mv <source> <destination>",
+              "instruction": "Rename todo.txt to tasks.txt.",
+              "expected_commands": ["mv todo.txt tasks.txt"],
+              "hint": "mv old_name new_name: mv todo.txt tasks.txt",
+              "success_message": "✓ todo.txt is now tasks.txt. mv is the standard way to rename files in Linux."
+            },
+            {
+              "explanation": "mv to a different directory\n\nWhen the destination is an existing directory, mv places the file inside it:\n  mv notes.txt Documents/   moves notes.txt into Documents/\n\nThe original location no longer contains the file. You can verify with ls after the move.\n\nYou can also move and rename simultaneously:\n  mv notes.txt Documents/my_notes.txt\n\nSyntax:  mv <source> <destination_dir>/",
+              "instruction": "Move notes.txt into the Documents directory.",
+              "expected_commands": ["mv notes.txt Documents/", "mv notes.txt Documents"],
+              "hint": "mv source destination_dir: mv notes.txt Documents/",
+              "success_message": "✓ notes.txt is now inside Documents/. It no longer exists in the home directory."
+            }
+          ]
+        },
+        {
+          "id": "rm",
+          "title": "Removing files (rm)",
+          "concept": "rm permanently deletes files. There is no Recycle Bin — what's deleted is gone.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "rm: Remove\n\nDeletes files permanently. There is no undo, no trash. Once you rm a file, it's gone.\n\nAlways double-check what you're deleting before pressing Enter. For safety, avoid wildcards like rm * until you're very comfortable with the tool.\n\nSyntax:  rm <filename>",
+              "instruction": "Remove temp.txt from your home directory.",
+              "expected_commands": ["rm temp.txt"],
+              "hint": "rm followed by the filename: rm temp.txt",
+              "success_message": "✓ temp.txt deleted. Remember: rm is permanent — no recycle bin!"
+            },
+            {
+              "explanation": "rm with a path\n\nYou can remove a file in any directory by providing its path, relative or absolute.\n\nExample:\n  rm Downloads/archive.zip\n  rm /tmp/old_file.txt\n\nFor directories, rm needs the -r flag (recursive) to delete the directory and everything inside it. Never run rm -rf on an important directory — it deletes everything immediately.\n\nSyntax:  rm <path/to/file>",
+              "instruction": "Remove the archive file from the Downloads directory.",
+              "expected_commands": ["rm Downloads/archive.zip"],
+              "hint": "Provide the path: rm Downloads/archive.zip",
+              "success_message": "✓ archive.zip removed from Downloads/!"
+            }
+          ]
+        },
+        {
+          "id": "rmdir",
+          "title": "Removing directories (rmdir)",
+          "concept": "rmdir removes a directory — but only if it's completely empty.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "rmdir: Remove Directory\n\nRemoves an empty directory. If the directory contains any files or subdirectories, rmdir will refuse with an error.\n\nThis safety feature means rmdir can never accidentally delete your data. For removing a directory with contents, you would use rm -r (which is much more dangerous).\n\nSyntax:  rmdir <directory>",
+              "instruction": "Remove the empty directory called tmp.",
+              "expected_commands": ["rmdir tmp"],
+              "hint": "rmdir followed by the directory name: rmdir tmp",
+              "success_message": "✓ tmp/ removed. rmdir only works when the directory is empty — that's by design!"
+            },
+            {
+              "explanation": "rmdir on another empty directory\n\nYou can use rmdir with any path to an empty directory, not just names in the current folder.\n\nIf you try to rmdir a directory that still has files, you'll get:\n  rmdir: failed to remove 'dir': Directory not empty\n\nIn that case, you'd need to empty the directory first (or use rm -r, carefully).\n\nSyntax:  rmdir <path/to/directory>",
+              "instruction": "Remove the other empty directory called old.",
+              "expected_commands": ["rmdir old"],
+              "hint": "rmdir old",
+              "success_message": "✓ Both empty directories cleaned up. Use ls to confirm they're gone."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "file-content",
       "title": "Reading File Content",
       "icon": "📖",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "cat",
+          "title": "Displaying files (cat)",
+          "concept": "cat reads a file and prints every line to the terminal. Short for 'concatenate'.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "cat: Concatenate and print\n\nDisplays the entire contents of a file, line by line. It's the quickest way to read a short text file without opening an editor.\n\nThe name comes from its original purpose: concatenating (joining) multiple files. But reading single files is its most common everyday use.\n\nSyntax:  cat <filename>",
+              "instruction": "Display the contents of notes.txt.",
+              "expected_commands": ["cat notes.txt"],
+              "hint": "cat followed by the filename: cat notes.txt",
+              "success_message": "✓ You can read any text file with cat!"
+            },
+            {
+              "explanation": "cat with a path\n\nYou can cat any file by providing its path, not just files in your current directory.\n\nExample:\n  cat Documents/letter.txt\n  cat /etc/hosts\n\ncat dumps the whole file at once. For large files, use head or tail instead to preview just part of the content.\n\nSyntax:  cat <path/to/file>",
+              "instruction": "Display the letter inside your Documents folder.",
+              "expected_commands": ["cat Documents/letter.txt"],
+              "hint": "Provide the path: cat Documents/letter.txt",
+              "success_message": "✓ cat works with any path, not just files in the current directory."
+            }
+          ]
+        },
+        {
+          "id": "echo",
+          "title": "Printing text (echo)",
+          "concept": "echo prints whatever you give it. It's fundamental to scripting, messaging, and debugging.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "echo: Print a line of text\n\nOutputs its arguments to the terminal, followed by a newline. Arguments are separated by spaces; echo prints them with a single space between each.\n\nCommon uses:\n  • print a message  echo Done!\n  • check a variable  echo $HOME  (shows /home/user)\n  • write to a file   echo text > file.txt  (redirection, covered later)\n\nSyntax:  echo <text>",
+              "instruction": "Print the message: Hello Linux",
+              "expected_commands": ["echo hello linux", "echo Hello Linux"],
+              "hint": "echo followed by the text: echo Hello Linux",
+              "success_message": "✓ echo prints its arguments to the terminal."
+            },
+            {
+              "explanation": "echo with multiple words\n\necho accepts as many words as you give it and joins them with spaces in the output.\n\n  echo one two three   →  one two three\n\nThis becomes powerful in scripts: you can use echo to print status messages, labels, and debug info, and combine it with redirection (>) to write text to files without an editor.\n\nSyntax:  echo <word1> <word2> ...",
+              "instruction": "Use echo to print: Hello user",
+              "expected_commands": ["echo hello user", "echo Hello user"],
+              "hint": "echo Hello user",
+              "success_message": "✓ echo outputs exactly what you give it!"
+            }
+          ]
+        },
+        {
+          "id": "head",
+          "title": "First lines (head)",
+          "concept": "head shows the beginning of a file — essential when files are too large to cat.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "head: Output the first N lines\n\nBy default, head shows the first 10 lines of a file. Use -n to specify a different number.\n\nThis is invaluable when dealing with large log files or data exports: instead of flooding your terminal with thousands of lines, you peek at the structure first.\n\nSyntax:  head -n <count> <filename>",
+              "instruction": "Show the first 3 lines of Documents/letter.txt.",
+              "expected_commands": ["head -n 3 Documents/letter.txt"],
+              "hint": "head -n 3 Documents/letter.txt",
+              "success_message": "✓ head shows the top of any file without loading it all!"
+            },
+            {
+              "explanation": "head on different files\n\nhead works on any readable text file. You can combine it with a path just like cat.\n\nUseful pattern:\n  head -n 1 file.txt  shows only the very first line (great for CSV headers)\n  head -n 5 log.txt   peek at the first 5 log entries\n\nSyntax:  head -n <count> <path/to/file>",
+              "instruction": "Show the first 2 lines of notes.txt.",
+              "expected_commands": ["head -n 2 notes.txt"],
+              "hint": "head -n 2 notes.txt",
+              "success_message": "✓ head -n N shows exactly N lines from the top of any file."
+            }
+          ]
+        },
+        {
+          "id": "tail",
+          "title": "Last lines (tail)",
+          "concept": "tail shows the end of a file — especially useful for log files where new entries appear at the bottom.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "tail: Output the last N lines\n\nMirror of head: shows the last N lines of a file instead of the first. Default is 10 lines without -n.\n\nLog files grow downward (newest entries at the bottom), making tail the go-to tool for checking what just happened:\n  tail -n 20 /var/log/syslog   last 20 system events\n\nSyntax:  tail -n <count> <filename>",
+              "instruction": "Show the last 2 lines of notes.txt.",
+              "expected_commands": ["tail -n 2 notes.txt"],
+              "hint": "tail -n 2 notes.txt",
+              "success_message": "✓ tail reads from the bottom up — great for log files!"
+            },
+            {
+              "explanation": "tail with a path\n\nLike head and cat, tail accepts any path to a readable file.\n\nPro tip: tail -f file.txt follows a file in real time, printing new lines as they're added. This is the standard way to monitor a live log file. The -f variant isn't covered in this lesson, but it's worth knowing about.\n\nSyntax:  tail -n <count> <path/to/file>",
+              "instruction": "Show the last 3 lines of Documents/letter.txt.",
+              "expected_commands": ["tail -n 3 Documents/letter.txt"],
+              "hint": "tail -n 3 Documents/letter.txt",
+              "success_message": "✓ tail -n 3 shows the last 3 lines of any file. You've now mastered head and tail!"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "search",
       "title": "Search & Find",
       "icon": "🔍",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "grep",
+          "title": "Searching text (grep)",
+          "concept": "grep scans a file line by line and prints only the lines that match a pattern.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "grep: Global Regular Expression Print\n\nSearches a file for lines matching a pattern and prints each matching line. The pattern is case-sensitive by default.\n\nSyntax:  grep <pattern> <file>\n\nExamples:\n  grep error log.txt        lines containing 'error'\n  grep root /etc/passwd     lines mentioning 'root'\n\ngrep exits with code 0 if it found matches, 1 if not — useful in scripts.",
+              "instruction": "Find all lines in notes.txt that contain the word TODO.",
+              "expected_commands": ["grep TODO notes.txt", "grep todo notes.txt"],
+              "hint": "grep pattern file: grep TODO notes.txt",
+              "success_message": "✓ grep found every line containing TODO!"
+            },
+            {
+              "explanation": "grep -i: Case-insensitive search\n\nBy default, grep is case-sensitive: 'Meeting' and 'meeting' are different.\n\nThe -i flag (ignore case) makes the search match regardless of uppercase or lowercase:\n  grep -i meeting notes.txt  matches 'Meeting', 'MEETING', 'meeting'\n\nUse -i when you're not sure how the text was typed, or when searching user-generated content.\n\nSyntax:  grep -i <pattern> <file>",
+              "instruction": "Search for lines containing 'meeting' in notes.txt, ignoring case.",
+              "expected_commands": ["grep -i meeting notes.txt"],
+              "hint": "Add -i for case-insensitive: grep -i meeting notes.txt",
+              "success_message": "✓ -i makes grep ignore case — it matched 'Meeting' even though you searched for 'meeting'!"
+            },
+            {
+              "explanation": "grep -n: Show line numbers\n\nThe -n flag adds the line number before each matching line:\n  grep -n pattern file\n  Output: 3:matching line content\n\nLine numbers are useful when you want to jump to a specific location in an editor, or when scanning a script for where something happens.\n\nSyntax:  grep -n <pattern> <file>",
+              "instruction": "Find lines containing 'Alice' in Documents/scores.csv and show the line numbers.",
+              "expected_commands": ["grep -n Alice Documents/scores.csv", "grep -n alice Documents/scores.csv"],
+              "hint": "Add -n to show line numbers: grep -n Alice Documents/scores.csv",
+              "success_message": "✓ grep -n shows exactly which line number each match is on!"
+            }
+          ]
+        },
+        {
+          "id": "find",
+          "title": "Finding files (find)",
+          "concept": "find searches the filesystem for files and directories matching your criteria.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "find: Search for files\n\nSearches a directory tree for entries that match criteria you specify. Unlike ls, find descends into all subdirectories automatically.\n\nBasic form:\n  find <start_dir> [options]\n\nTo find a specific file by name:\n  find . -name notes.txt   searches from . (current dir) downward\n\nThe dot (.) means \"start here\". Results are printed as paths relative to the start.\n\nSyntax:  find <path> -name <filename>",
+              "instruction": "Find the file notes.txt starting from your current directory.",
+              "expected_commands": ["find . -name notes.txt"],
+              "hint": "find . -name notes.txt",
+              "success_message": "✓ find searches all subdirectories recursively!"
+            },
+            {
+              "explanation": "find -type d: Find directories\n\nThe -type flag filters by entry type:\n  -type f   regular files only\n  -type d   directories only\n\nThis is useful when you want to list all directories in a project, or find all files without directories cluttering the output.\n\nSyntax:  find <path> -type d",
+              "instruction": "List all directories under your current location.",
+              "expected_commands": ["find . -type d"],
+              "hint": "Use -type d to find directories: find . -type d",
+              "success_message": "✓ find . -type d lists every directory in the tree!"
+            },
+            {
+              "explanation": "find in a specific subdirectory\n\nYou don't have to start find from . every time. You can give it any directory as the starting point to narrow the search:\n  find Documents -name letter.txt   only searches inside Documents/\n\nThis is much faster on large filesystems when you know roughly where the file lives.\n\nSyntax:  find <specific_dir> -name <filename>",
+              "instruction": "Find the file letter.txt, but search only inside the Documents directory.",
+              "expected_commands": ["find Documents -name letter.txt"],
+              "hint": "Replace . with the directory to search: find Documents -name letter.txt",
+              "success_message": "✓ Limiting find to a subdirectory keeps results focused and searches faster!"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "text-processing",
       "title": "Text Processing",
       "icon": "✏️",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "wc",
+          "title": "Counting (wc)",
+          "concept": "wc counts lines, words, and bytes in a file — quick stats without opening it.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "wc: Word Count\n\nWithout flags, wc prints three numbers: lines, words, and bytes. You almost always want just one at a time:\n  -l   count lines only\n  -w   count words only\n  -c   count bytes only\n\nLine counting (-l) is especially useful: how many entries in this log? How many rows in this CSV?\n\nSyntax:  wc -l <file>   (or -w, -c)",
+              "instruction": "Count the number of lines in notes.txt.",
+              "expected_commands": ["wc -l notes.txt"],
+              "hint": "wc -l counts lines: wc -l notes.txt",
+              "success_message": "✓ wc -l is one of the most common one-liners in shell scripting!"
+            },
+            {
+              "explanation": "wc -w: Count words\n\nA 'word' for wc is any sequence of characters separated by whitespace (spaces, tabs, newlines).\n\nThis is useful for rough word counts in text files, or for counting tokens in a list where each item is on its own line.\n\nSyntax:  wc -w <file>",
+              "instruction": "Count the number of words in todo.txt.",
+              "expected_commands": ["wc -w todo.txt"],
+              "hint": "wc -w counts words: wc -w todo.txt",
+              "success_message": "✓ wc -w counted all the words in your to-do list!"
+            }
+          ]
+        },
+        {
+          "id": "sort",
+          "title": "Sorting lines (sort)",
+          "concept": "sort reads a file's lines and outputs them in order. Alphabetical by default.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "sort: Sort lines of text\n\nReads a file and prints its lines in alphabetical (lexicographic) order. The original file is unchanged; output goes to the terminal.\n\nFlags:\n  sort file.txt   alphabetical (A–Z)\n  sort -r file.txt  reverse (Z–A)\n  sort -n file.txt  numeric order (1, 2, 10 instead of 1, 10, 2)\n  sort -u file.txt  unique: removes duplicate lines\n\nSyntax:  sort [flags] <file>",
+              "instruction": "Sort the lines of todo.txt alphabetically.",
+              "expected_commands": ["sort todo.txt"],
+              "hint": "sort followed by the filename: sort todo.txt",
+              "success_message": "✓ sort reorganises the lines alphabetically!"
+            },
+            {
+              "explanation": "sort -r: Reverse order\n\nThe -r flag reverses the sort direction: Z before A, or (with -n) largest numbers first.\n\nReverse sort is often used for:\n  • showing the largest files first (du output)\n  • showing the most recent entries first (when dates are formatted as YYYY-MM-DD)\n  • finding the last item alphabetically in a list\n\nSyntax:  sort -r <file>",
+              "instruction": "Sort todo.txt in reverse alphabetical order.",
+              "expected_commands": ["sort -r todo.txt"],
+              "hint": "Add -r for reverse order: sort -r todo.txt",
+              "success_message": "✓ sort -r inverts the order — last becomes first!"
+            }
+          ]
+        },
+        {
+          "id": "uniq",
+          "title": "Removing duplicates (uniq)",
+          "concept": "uniq filters out adjacent duplicate lines. Often used after sort to deduplicate a list.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "uniq: Filter adjacent duplicates\n\nuniq removes consecutive duplicate lines from its input. The key word is adjacent: it only removes repeats that are next to each other. Non-adjacent duplicates are not removed.\n\nThis is why uniq is almost always paired with sort first:\n  sort list.txt | uniq   (pipes covered in a later section)\n\nFor now, the file Documents/duplicates.txt already has adjacent duplicates for you to practice with.\n\nSyntax:  uniq <file>",
+              "instruction": "Remove adjacent duplicate lines from Documents/duplicates.txt.",
+              "expected_commands": ["uniq Documents/duplicates.txt"],
+              "hint": "uniq followed by the filename: uniq Documents/duplicates.txt",
+              "success_message": "✓ uniq collapsed consecutive duplicates into single lines!"
+            },
+            {
+              "explanation": "uniq -c: Count occurrences\n\nThe -c flag prepends each output line with the number of times it appeared consecutively:\n  2 apple    (appeared 2 times in a row)\n  1 banana   (appeared once)\n  3 cherry   (appeared 3 times in a row)\n\nThis is a fast way to find the most repeated items in a sorted list.\n\nSyntax:  uniq -c <file>",
+              "instruction": "Show each unique line in Documents/duplicates.txt along with how many times it appeared.",
+              "expected_commands": ["uniq -c Documents/duplicates.txt"],
+              "hint": "Add -c to count: uniq -c Documents/duplicates.txt",
+              "success_message": "✓ uniq -c shows the count for each group of duplicates!"
+            }
+          ]
+        },
+        {
+          "id": "cut",
+          "title": "Extracting columns (cut)",
+          "concept": "cut slices out columns from structured text — great for CSV and tabular data.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "cut: Extract fields from lines\n\ncut selects specific columns (fields) from each line. For delimited files like CSVs:\n  -d ,   use comma as the delimiter\n  -f 1   extract field number 1 (first column)\n\nThe file Documents/scores.csv has three columns: name, score, grade.\n\nSyntax:  cut -d <delimiter> -f <field_number> <file>",
+              "instruction": "Extract the first column (names) from Documents/scores.csv.",
+              "expected_commands": ["cut -d , -f 1 Documents/scores.csv"],
+              "hint": "cut -d , -f 1 Documents/scores.csv",
+              "success_message": "✓ cut extracted just the names column from the CSV!"
+            },
+            {
+              "explanation": "cut with a different field number\n\nChange -f to extract any column you want:\n  -f 1   first column\n  -f 2   second column\n  -f 3   third column\n  -f 1,3   first AND third columns\n\ncut is especially powerful when combined with sort and other tools via pipes (covered later).\n\nSyntax:  cut -d <delimiter> -f <field_number> <file>",
+              "instruction": "Extract the second column (scores) from Documents/scores.csv.",
+              "expected_commands": ["cut -d , -f 2 Documents/scores.csv"],
+              "hint": "Change -f to 2: cut -d , -f 2 Documents/scores.csv",
+              "success_message": "✓ cut -f 2 extracted the scores column. You can pull any column from structured text!"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "permissions",
       "title": "Permissions & Ownership",
       "icon": "🔐",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "stat",
+          "title": "File metadata (stat)",
+          "concept": "stat shows everything about a file: size, permissions, timestamps, inode number.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "stat: Display file status\n\nshows detailed metadata about a file or directory:\n  • File name and path\n  • Size in bytes\n  • Block size and blocks used\n  • File type and permissions\n  • Inode number (filesystem identifier)\n  • Number of hard links\n  • Owner (UID) and group (GID)\n  • Access, Modify, and Change timestamps\n\nls -l shows a subset of this; stat shows everything.\n\nSyntax:  stat <file>",
+              "instruction": "Show full metadata for notes.txt.",
+              "expected_commands": ["stat notes.txt"],
+              "hint": "stat followed by the filename: stat notes.txt",
+              "success_message": "✓ stat reveals every detail stored about a file in the filesystem!"
+            },
+            {
+              "explanation": "stat on executables and scripts\n\nstat is especially useful for executable files, where you want to confirm:\n  • permissions (is it actually executable?)\n  • who owns it\n  • when it was last modified\n\nThe Downloads directory contains a shell script, setup.sh. Let's inspect it.\n\nSyntax:  stat <path/to/file>",
+              "instruction": "Show the metadata for Downloads/setup.sh.",
+              "expected_commands": ["stat Downloads/setup.sh"],
+              "hint": "stat Downloads/setup.sh",
+              "success_message": "✓ stat on a script shows its permissions, owner, and last modification time."
+            }
+          ]
+        },
+        {
+          "id": "file",
+          "title": "File types (file)",
+          "concept": "file identifies what a file actually contains — regardless of its extension.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "file: Determine file type\n\nReads the content of a file and reports what type it is. Unlike the file extension (which can be wrong or missing), file inspects the actual data (magic bytes) to determine the type.\n\nExamples of output:\n  ASCII text\n  Zip archive data\n  PDF document\n  JPEG image data\n  Bourne-Again shell script\n\nSyntax:  file <filename>",
+              "instruction": "Determine the type of Downloads/archive.zip.",
+              "expected_commands": ["file Downloads/archive.zip"],
+              "hint": "file followed by the path: file Downloads/archive.zip",
+              "success_message": "✓ file identified the archive type from its content, not just its name!"
+            },
+            {
+              "explanation": "file on different formats\n\nfile helps when:\n  • a file has no extension and you don't know what it is\n  • an extension looks wrong (someone named a shell script as .txt)\n  • you want to confirm a download is what it claims to be\n\nLet's inspect the PDF in your Documents folder.\n\nSyntax:  file <path/to/file>",
+              "instruction": "Determine the file type of Documents/report.pdf.",
+              "expected_commands": ["file Documents/report.pdf"],
+              "hint": "file Documents/report.pdf",
+              "success_message": "✓ file reads the file content to identify its true type!"
+            }
+          ]
+        },
+        {
+          "id": "chmod",
+          "title": "Changing permissions (chmod)",
+          "concept": "chmod controls who can read, write, and execute a file.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "chmod: Change file mode (permissions)\n\nLinux permissions have three categories:\n  u (user/owner)   g (group)   o (others)\n\nAnd three permission bits per category:\n  r (read=4)   w (write=2)   x (execute=1)\n\nSymbolic form:\n  chmod +x file   add execute for everyone\n  chmod -w file   remove write for everyone\n  chmod u+x file  add execute for owner only\n\nOctal form (sum r+w+x per category):\n  chmod 755 file  → rwxr-xr-x\n  chmod 644 file  → rw-r--r--\n\nSyntax:  chmod <mode> <file>",
+              "instruction": "Make Downloads/setup.sh executable for everyone (add +x).",
+              "expected_commands": ["chmod +x Downloads/setup.sh"],
+              "hint": "chmod +x adds execute permission: chmod +x Downloads/setup.sh",
+              "success_message": "✓ setup.sh is now executable! Verify with: stat Downloads/setup.sh"
+            },
+            {
+              "explanation": "chmod with octal notation\n\nOctal notation sets all permissions at once using three digits (owner, group, others):\n  6 = rw-  (read + write)\n  4 = r--  (read only)\n  7 = rwx  (read + write + execute)\n  5 = r-x  (read + execute)\n\nCommon patterns:\n  644  regular files     (owner rw, others r)\n  755  executables/dirs  (owner rwx, others rx)\n  600  private files     (owner rw only)\n\nSyntax:  chmod <octal> <file>",
+              "instruction": "Set notes.txt to standard file permissions: rw-r--r-- (octal 644).",
+              "expected_commands": ["chmod 644 notes.txt"],
+              "hint": "Use octal notation: chmod 644 notes.txt",
+              "success_message": "✓ 644 is the standard permission for regular text files: owner can edit, everyone else can read."
+            }
+          ]
+        },
+        {
+          "id": "chown",
+          "title": "Changing ownership (chown)",
+          "concept": "chown changes who owns a file. Usually requires root on real systems.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "chown: Change owner\n\nEvery file has an owner (a user) and a group. chown changes one or both:\n  chown alice file       changes owner to alice\n  chown alice:devs file  changes owner to alice and group to devs\n  chown :devs file       changes only the group\n\nOn a real Linux system, changing ownership typically requires root (sudo chown ...) unless you're giving away a file you own.\n\nIn this simulator you can practice the syntax freely.\n\nSyntax:  chown <owner> <file>   or   chown <owner>:<group> <file>",
+              "instruction": "Change the owner of notes.txt to root.",
+              "expected_commands": ["chown root notes.txt"],
+              "hint": "chown new_owner filename: chown root notes.txt",
+              "success_message": "✓ notes.txt owner changed to root. Check it with: stat notes.txt"
+            },
+            {
+              "explanation": "chown with owner and group\n\nThe colon syntax lets you set both owner and group in one command:\n  chown user:users file   sets owner=user, group=users\n\nGroups are used to share files with a team:\n  • files owned by group 'devs' can be read/written by all members of devs\n  • combined with chmod g+rw, the whole group gets write access\n\nSyntax:  chown <owner>:<group> <file>",
+              "instruction": "Change the owner to user and the group to users on notes.txt.",
+              "expected_commands": ["chown user:users notes.txt"],
+              "hint": "Use the colon syntax: chown user:users notes.txt",
+              "success_message": "✓ Owner set to user, group set to users. The owner:group pattern is very common in team setups."
+            }
+          ]
+        },
+        {
+          "id": "du",
+          "title": "Disk usage (du)",
+          "concept": "du shows how much disk space a file or directory is using.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "du: Disk Usage\n\nReports the disk space used by files and directories. Without flags it prints sizes in 512-byte blocks, which is hard to read.\n\nThe -h flag (human-readable) converts sizes to KB, MB, GB:\n  du -h Documents   shows size of each item in Documents/\n\ndu descends into subdirectories by default, showing each one.\n\nSyntax:  du -h <path>",
+              "instruction": "Show the disk usage of the Documents directory in human-readable format.",
+              "expected_commands": ["du -h Documents"],
+              "hint": "du -h for human-readable sizes: du -h Documents",
+              "success_message": "✓ du -h shows how much space each directory and file occupies!"
+            },
+            {
+              "explanation": "du -sh: Summary only\n\nThe -s flag (summary) suppresses subdirectory listing and shows only the total for the given path:\n  du -h .    shows every file/dir under current directory\n  du -sh .   shows only the grand total\n\nCombining -s and -h gives a quick answer to 'how big is this directory?'\n\nSyntax:  du -sh <path>",
+              "instruction": "Show the total size of your entire home directory (current directory) as a single summary.",
+              "expected_commands": ["du -sh ."],
+              "hint": "Combine -s and -h: du -sh .",
+              "success_message": "✓ du -sh gives you the total in one line — great for a quick size check!"
+            }
+          ]
+        },
+        {
+          "id": "df",
+          "title": "Disk free (df)",
+          "concept": "df shows total, used, and available space for each mounted filesystem.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "df: Disk Free\n\nReports the amount of disk space available on each filesystem (mounted partition or device).\n\nWithout flags, sizes are in 1KB blocks. Each row shows:\n  Filesystem   Size   Used   Available   Use%   Mounted on\n\ndf answers 'is the disk almost full?' at a glance.\n\nSyntax:  df",
+              "instruction": "Check the available disk space on your system.",
+              "expected_commands": ["df"],
+              "hint": "df takes no required arguments: just type df",
+              "success_message": "✓ df gives you a snapshot of disk usage across all filesystems!"
+            },
+            {
+              "explanation": "df -h: Human-readable output\n\nLike du, the -h flag makes df output human-readable sizes (MB, GB) instead of raw blocks:\n  df -h   much easier to interpret\n\nThis is almost always what you want. On a real server, 'df -h' is one of the first commands a sysadmin runs when investigating disk issues.\n\nSyntax:  df -h",
+              "instruction": "Show disk space in human-readable format.",
+              "expected_commands": ["df -h"],
+              "hint": "Add -h for human-readable: df -h",
+              "success_message": "✓ df -h is the standard disk space check — easy to read at a glance."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "system-info",
       "title": "System Information",
       "icon": "⚙️",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "whoami",
+          "title": "Who are you? (whoami & id)",
+          "concept": "whoami and id tell you who you are in the system — essential in multi-user environments.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "whoami: Print current username\n\nOutputs the username of the currently logged-in user. Simple, fast, and surprisingly useful:\n  • confirms which account you're running as\n  • critical in scripts to verify you're not accidentally running as root\n  • verifies that sudo su or su commands worked\n\nNo arguments needed.\n\nSyntax:  whoami",
+              "instruction": "Find out which user you are currently logged in as.",
+              "expected_commands": ["whoami"],
+              "hint": "Just type: whoami",
+              "success_message": "✓ You're logged in as 'user'. Always good to confirm!"
+            },
+            {
+              "explanation": "id: Full user and group information\n\nid gives more detail than whoami:\n  uid=1000(user)         your numeric user ID and username\n  gid=1000(user)         your primary group ID and name\n  groups=1000(user),...  all groups you belong to\n\nGroup membership controls what files you can access. For example:\n  group 'sudo'  means you can run sudo\n  group 'adm'   means you can read system logs\n\nSyntax:  id",
+              "instruction": "Show your full user ID, group ID, and all group memberships.",
+              "expected_commands": ["id"],
+              "hint": "Just type: id",
+              "success_message": "✓ id shows your UID, GID, and all group memberships — more detail than whoami!"
+            }
+          ]
+        },
+        {
+          "id": "hostname",
+          "title": "System name (hostname & uname)",
+          "concept": "hostname shows the machine's network name; uname shows the operating system details.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "hostname: Show the machine name\n\nPrints the hostname of the current machine — the name it uses on the network. In server environments you SSH into multiple machines; hostname reminds you which one you're on.\n\nIt's also used in scripts to make behavior conditional on which host is running them:\n  if [ \"$(hostname)\" = \"webserver\" ]; then ...\n\nSyntax:  hostname",
+              "instruction": "Check the hostname of this machine.",
+              "expected_commands": ["hostname"],
+              "hint": "Just type: hostname",
+              "success_message": "✓ This machine's hostname is 'linux-quest'!"
+            },
+            {
+              "explanation": "uname: Print system information\n\nuname (unix name) reports information about the operating system and kernel.\n\nFlags:\n  uname      print kernel name only (e.g. Linux)\n  uname -s   same as uname alone\n  uname -n   hostname\n  uname -r   kernel release (version number)\n  uname -m   machine hardware (x86_64, arm64)\n  uname -a   all of the above at once\n\nSyntax:  uname [-a]",
+              "instruction": "Print all system information at once with uname -a.",
+              "expected_commands": ["uname -a"],
+              "hint": "uname -a shows all system info: uname -a",
+              "success_message": "✓ uname -a shows kernel, hostname, version, and architecture in one line!"
+            }
+          ]
+        },
+        {
+          "id": "date",
+          "title": "Date & time (date)",
+          "concept": "date prints the current date and time. In scripts it's used to timestamp files and logs.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "date: Print current date and time\n\nOutputs the current date and time in a human-readable format:\n  Tue Jan 16 09:05:00 UTC 2024\n\ndate has a rich formatting system: you can produce any date format with + and format codes:\n  date +%Y-%m-%d         2024-01-16\n  date +%H:%M            09:05\n  date +%s               Unix timestamp (seconds since 1970)\n\nIn scripts, date is often used to create unique filenames: backup-$(date +%Y%m%d).tar.gz\n\nSyntax:  date",
+              "instruction": "Show the current date and time.",
+              "expected_commands": ["date"],
+              "hint": "Just type: date",
+              "success_message": "✓ date gives you the current system time — useful for timestamping and logging!"
+            },
+            {
+              "explanation": "uname -s: Kernel name only\n\nYou've already seen uname -a (all info). Sometimes you only want one piece, like just the kernel name:\n  uname -s   Linux\n\nThis is more useful in scripts than in interactive use:\n  OS=$(uname -s)\n  if [ \"$OS\" = \"Linux\" ]; then\n    # Linux-specific steps\n  fi\n\nCompare this to uname -a which dumps everything at once.\n\nSyntax:  uname -s",
+              "instruction": "Print only the kernel name (operating system type).",
+              "expected_commands": ["uname -s"],
+              "hint": "uname -s prints just the kernel name: uname -s",
+              "success_message": "✓ uname -s confirms the OS type. On this machine it's Linux!"
+            }
+          ]
+        },
+        {
+          "id": "ps",
+          "title": "Running processes (ps)",
+          "concept": "ps lists the processes currently running on the system.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "ps: Process Status\n\nDisplays a snapshot of current running processes. By default it shows only the processes belonging to your current terminal session:\n  PID   process ID (unique number)\n  TTY   terminal the process is attached to\n  TIME  CPU time consumed\n  CMD   command name\n\nEvery running program has a PID. You use PIDs to send signals (kill, pause, etc.) to processes.\n\nSyntax:  ps",
+              "instruction": "List the processes in your current terminal session.",
+              "expected_commands": ["ps"],
+              "hint": "Just type: ps",
+              "success_message": "✓ ps shows the processes attached to your session!"
+            },
+            {
+              "explanation": "ps aux: All processes\n\nTo see every process on the whole system, use the aux flags:\n  a   show processes from all users\n  u   user-oriented format (shows username, CPU%, MEM%)\n  x   include processes not attached to a terminal\n\nThe output includes system daemons, web servers, databases — everything running.\n\nOn a busy server, ps aux | grep nginx (covered with pipes later) is how you check if a service is running.\n\nSyntax:  ps aux",
+              "instruction": "List all processes running on the system.",
+              "expected_commands": ["ps aux"],
+              "hint": "ps aux shows all processes: ps aux",
+              "success_message": "✓ ps aux reveals every running process on the system!"
+            }
+          ]
+        },
+        {
+          "id": "env",
+          "title": "Environment variables (env & printenv)",
+          "concept": "Environment variables are key-value pairs that configure the shell and programs.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "env: Print environment variables\n\nEnvironment variables store configuration that programs inherit automatically:\n  HOME     your home directory\n  PATH     directories searched for commands\n  USER     your username\n  SHELL    the current shell\n  EDITOR   your default text editor\n  LANG     language and locale settings\n\nenv with no arguments prints all of them. Programs like Python, Node, and nginx read these to configure themselves.\n\nSyntax:  env",
+              "instruction": "Print all current environment variables.",
+              "expected_commands": ["env"],
+              "hint": "Just type: env",
+              "success_message": "✓ env reveals all the environment variables available to your shell and programs!"
+            },
+            {
+              "explanation": "printenv: Another way to view env vars\n\nprintenv is an alias for env in many contexts. Both print the same environment variables.\n\nIn practice:\n  env          full list of variables\n  printenv     same full list\n  printenv HOME  print just the HOME variable\n\nYou'll see both in the wild. Knowing they're interchangeable saves confusion.\n\nSyntax:  printenv",
+              "instruction": "Print all environment variables using printenv.",
+              "expected_commands": ["printenv"],
+              "hint": "Just type: printenv",
+              "success_message": "✓ printenv and env are interchangeable for listing all variables!"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "session",
       "title": "Session & Navigation",
       "icon": "💻",
-      "locked": true,
-      "lessons": []
+      "locked": false,
+      "lessons": [
+        {
+          "id": "history",
+          "title": "Command history (history)",
+          "concept": "history shows every command you've run. Never type a long command twice.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "history: Show command history\n\nPrints a numbered list of the commands you've run in the current session. Each entry shows the command number and the command itself:\n  1  ls\n  2  cd Documents\n  3  cat notes.txt\n\nThe number lets you re-run a command without retyping it:\n  !3   re-runs command 3\n  !!   re-runs the last command\n\nThis is invaluable when you've typed a long command and want to repeat it.\n\nSyntax:  history",
+              "instruction": "View your command history for this session.",
+              "expected_commands": ["history"],
+              "hint": "Just type: history",
+              "success_message": "✓ history shows every command you've run — all your steps are recorded!"
+            },
+            {
+              "explanation": "History grows as you work\n\nEvery command you type gets added to the history list. If you run history again now, you'll see the previous history call itself has been added.\n\nIn the real bash shell, history persists across sessions (stored in ~/.bash_history). The file already exists in your home directory and contains some earlier commands from a simulated session.\n\nYou can also search history with Ctrl+R in a real terminal: press Ctrl+R, start typing, and bash finds the most recent matching command.\n\nSyntax:  history",
+              "instruction": "Run history again to see the list has grown with your recent commands.",
+              "expected_commands": ["history"],
+              "hint": "Type history again — you'll see it in the list itself now!",
+              "success_message": "✓ Every command adds to history. The longer you work, the more useful history becomes!"
+            }
+          ]
+        },
+        {
+          "id": "which",
+          "title": "Locating commands (which)",
+          "concept": "which tells you exactly where a command lives on the filesystem.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "which: Locate a command\n\nSearches directories in your PATH for the executable that runs when you type a command name. Prints the full path of the first match found.\n\nUseful for:\n  • confirming which version of a tool you're running\n  • debugging PATH issues (wrong version being used)\n  • checking if a program is installed at all\n\nIf the command isn't found in PATH, which prints nothing and returns exit code 1.\n\nSyntax:  which <command>",
+              "instruction": "Find out where the ls command is located.",
+              "expected_commands": ["which ls"],
+              "hint": "which followed by the command name: which ls",
+              "success_message": "✓ which showed you the full path to ls — that's the file that runs when you type ls!"
+            },
+            {
+              "explanation": "which on other commands\n\nwhich works on any command in your PATH:\n  which python    /usr/bin/python\n  which git       /usr/bin/git\n  which bash      /bin/bash\n\nIf you have multiple versions installed (like python2 and python3), which shows the first one found in PATH, which may not be what you expect. That's when it becomes a debugging tool.\n\nSyntax:  which <command>",
+              "instruction": "Find out where the grep command is installed.",
+              "expected_commands": ["which grep"],
+              "hint": "which grep",
+              "success_message": "✓ which grep shows the full path to the grep executable on this system!"
+            }
+          ]
+        },
+        {
+          "id": "man",
+          "title": "Reading manuals (man)",
+          "concept": "man opens the built-in manual for any command. The answer is always in the manual.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "man: Manual pages\n\nEvery standard Linux command has a built-in manual page. man opens it:\n  man ls     the full documentation for ls\n  man grep   everything grep can do\n  man man    the manual for man itself\n\nManual pages follow a standard structure:\n  NAME        command name and one-line description\n  SYNOPSIS    usage syntax\n  DESCRIPTION full explanation\n  OPTIONS     all flags and what they do\n  EXAMPLES    common usage patterns\n  SEE ALSO    related commands\n\nIn this simulator, man shows a condensed summary.\n\nSyntax:  man <command>",
+              "instruction": "Open the manual page for the ls command.",
+              "expected_commands": ["man ls"],
+              "hint": "man followed by the command name: man ls",
+              "success_message": "✓ man ls shows you everything ls can do — flags you didn't know about!"
+            },
+            {
+              "explanation": "man on other commands\n\nMake it a habit: when you encounter an unfamiliar flag or want to know all options for a command, reach for man first.\n\nIn a real terminal, man opens in a pager (usually less). You navigate with:\n  space / Page Down  scroll down\n  b / Page Up        scroll up\n  /pattern           search forward\n  q                  quit\n\nThis simulator shows the summary inline.\n\nSyntax:  man <command>",
+              "instruction": "Read the manual page for grep.",
+              "expected_commands": ["man grep"],
+              "hint": "man grep",
+              "success_message": "✓ Congratulations! You've completed all lessons. You now know your way around a Linux terminal!"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
