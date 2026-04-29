@@ -67,9 +67,15 @@ class LessonEngine {
   }
 
   _resumeProgress() {
+    const sectionIds = this.sections.map(s => s.id);
+    let fallbackSi = 0, fallbackLi = 0, fallbackCi = 0, foundFallback = false;
+
     for (let si = 0; si < this.sections.length; si++) {
       const section = this.sections[si];
       if (section.locked) continue;
+      // Stop before gated sections the user can't access yet
+      if (typeof getGateForSection === 'function' &&
+          getGateForSection(section.id, sectionIds) === 'premium') break;
       for (let li = 0; li < section.lessons.length; li++) {
         const lesson = section.lessons[li];
         for (let ci = 0; ci < lesson.challenges.length; ci++) {
@@ -79,8 +85,16 @@ class LessonEngine {
             this.challengeIdx = ci;
             return;
           }
+          fallbackSi = si; fallbackLi = li; fallbackCi = ci;
+          foundFallback = true;
         }
       }
+    }
+    // All accessible challenges complete — land on the last one so Next triggers the gate
+    if (foundFallback) {
+      this.sectionIdx = fallbackSi;
+      this.lessonIdx  = fallbackLi;
+      this.challengeIdx = fallbackCi;
     }
   }
 
