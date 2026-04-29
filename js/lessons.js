@@ -1,7 +1,7 @@
-const BTN_NEXT_DEFAULT = 'font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0';
-const BTN_NEXT_SUCCESS = 'font-terminal text-xs text-green-400 border border-green-400/50 bg-green-400/10 hover:bg-green-400/20 px-3 py-1.5 rounded transition-colors flex-shrink-0';
-const BTN_LOCK_ON  = 'font-terminal text-xs text-green-500 hover:text-green-400 px-1.5 py-0.5 rounded transition-colors';
-const BTN_LOCK_OFF = 'font-terminal text-xs text-amber-500 hover:text-amber-400 px-1.5 py-0.5 rounded transition-colors';
+const BTN_NEXT_DEFAULT = 'font-terminal text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent flex-shrink-0';
+const BTN_NEXT_SUCCESS = 'font-terminal text-xs text-green-600 dark:text-green-400 border border-green-600/50 dark:border-green-400/50 bg-green-600/10 dark:bg-green-400/10 hover:bg-green-600/20 dark:hover:bg-green-400/20 px-3 py-1.5 rounded transition-colors flex-shrink-0';
+const BTN_LOCK_ON  = 'font-terminal text-xs text-green-700 dark:text-green-500 hover:text-green-800 dark:hover:text-green-400 px-1.5 py-0.5 rounded transition-colors';
+const BTN_LOCK_OFF = 'font-terminal text-xs text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 px-1.5 py-0.5 rounded transition-colors';
 
 class LessonEngine {
   constructor(terminal) {
@@ -134,17 +134,17 @@ class LessonEngine {
       const isExpanded = !isLocked && this._expandedSectionId === section.id;
 
       const wrap = document.createElement('div');
-      wrap.className = 'mb-1 pt-1 border-t border-slate-800/60';
+      wrap.className = 'mb-1 pt-1 border-t border-slate-200 dark:border-slate-800/60';
       wrap.dataset.sectionId = section.id;
 
       const header = document.createElement('div');
-      header.className = `flex items-center gap-2 px-3 py-2 rounded ${isLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'}`;
+      header.className = `flex items-center gap-2 px-3 py-2 rounded ${isLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800'}`;
       const badge = isLocked
-        ? '<span class="text-slate-400 text-xs">🔒</span>'
-        : `<span class="sidebar-chevron text-slate-500 text-xs select-none">${isExpanded ? '▾' : '▸'}</span>`;
+        ? '<span class="text-slate-400 dark:text-slate-400 text-xs">🔒</span>'
+        : `<span class="sidebar-chevron text-slate-400 dark:text-slate-500 text-xs select-none">${isExpanded ? '▾' : '▸'}</span>`;
       header.innerHTML = `
         <span class="text-base leading-none">${section.icon || '📄'}</span>
-        <span class="text-sm font-semibold ${isLocked ? 'text-slate-500' : 'text-white'} flex-1 leading-tight">${section.title}</span>
+        <span class="text-sm font-semibold ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'} flex-1 leading-tight">${section.title}</span>
         ${badge}
       `;
 
@@ -167,10 +167,10 @@ class LessonEngine {
           item.className = [
             'flex items-center gap-2 px-3 py-1.5 rounded cursor-pointer text-sm transition-colors',
             current
-              ? 'bg-green-400/10 text-green-400 border-l-2 border-green-400'
+              ? 'bg-green-500/10 dark:bg-green-400/10 text-green-700 dark:text-green-400 border-l-2 border-green-500 dark:border-green-400'
               : done
-              ? 'text-slate-400 hover:bg-slate-800'
-              : 'text-slate-200 hover:bg-slate-800'
+              ? 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
           ].join(' ');
 
           item.innerHTML = `
@@ -246,7 +246,7 @@ class LessonEngine {
 
     if (challenge.tip) {
       this.$tip.textContent = challenge.tip;
-      this.$tip.className = 'mt-2 text-xs font-terminal text-slate-400';
+      this.$tip.className = 'mt-2 text-xs font-terminal text-slate-500 dark:text-slate-400';
     } else {
       this.$tip.textContent = '';
       this.$tip.className = 'hidden';
@@ -265,11 +265,9 @@ class LessonEngine {
     const isFirstSection  = this.sectionIdx === 0;
     const isVeryFirst     = this.challengeIdx === 0 && isFirstLesson && isFirstSection;
     this.$prevBtn.disabled = isVeryFirst;
-    this.$prevBtn.textContent = (this.challengeIdx === 0 && isFirstLesson && !isFirstSection)
-      ? '◀ Prev Section'
-      : '◀ Prev';
+    this.$prevBtn.textContent = '◀ Previous';
 
-    // Next button: text changes at lesson boundary
+    // Next button
     const isLastChallenge = this.challengeIdx >= total - 1;
     const isLastLesson = this.lessonIdx >= section.lessons.length - 1;
 
@@ -277,11 +275,8 @@ class LessonEngine {
 
     if (isLastChallenge && isLastLesson) {
       const isLastSection = this.sectionIdx >= this.sections.length - 1;
-      this.$nextBtn.textContent = isLastSection ? 'Course complete ✓' : 'Next Section →';
+      this.$nextBtn.textContent = isLastSection ? 'Course complete ✓' : 'Next';
       this.$nextBtn.disabled = isLastSection;
-    } else if (isLastChallenge) {
-      this.$nextBtn.textContent = 'Next Lesson →';
-      this.$nextBtn.disabled = false;
     } else {
       this.$nextBtn.textContent = 'Next ▶';
       this.$nextBtn.disabled = false;
@@ -341,7 +336,7 @@ class LessonEngine {
     this.challengeSolved = true;
 
     this.$feedback.textContent = challenge.success_message || '✓ Correct!';
-    this.$feedback.className = 'text-sm text-green-400 animate-fade-in';
+    this.$feedback.className = 'text-sm text-green-600 dark:text-green-400 animate-fade-in';
 
     if (!this.$nextBtn.disabled) {
       this.$nextBtn.className = BTN_NEXT_SUCCESS;
@@ -355,12 +350,12 @@ class LessonEngine {
   _onWrong(challenge) {
     this.wrongAttempts++;
     this.$feedback.innerHTML = '✗ Not quite, try again.';
-    this.$feedback.className = 'text-sm text-red-400 animate-shake';
+    this.$feedback.className = 'text-sm text-red-600 dark:text-red-400 animate-shake';
     setTimeout(() => this.$feedback.classList.remove('animate-shake'), 400);
 
     if (this.wrongAttempts >= 2 && challenge.hint) {
       this.$hint.textContent = `💡 Hint: ${challenge.hint}`;
-      this.$hint.className = 'text-xs text-yellow-400 mt-1';
+      this.$hint.className = 'text-xs text-yellow-700 dark:text-yellow-400 mt-1';
     }
   }
 

@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-slate-950" style="font-size:120%">
+<html lang="en" style="font-size:120%">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>linux-quest: Learn Linux by doing</title>
+
+  <!-- Apply saved theme before Tailwind renders — prevents flash -->
+  <script>
+    (function() {
+      var s = localStorage.getItem('lq-theme');
+      var dark = s === 'dark' || (!s && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -17,52 +28,137 @@
     }
   </script>
   <link rel="stylesheet" href="css/styles.css">
+
+  <style type="text/tailwindcss">
+    .course-card {
+      @apply flex flex-col
+             bg-white dark:bg-slate-900/60
+             border border-slate-200 dark:border-slate-800
+             hover:border-green-500/50 dark:hover:border-green-400/30
+             hover:shadow-lg hover:shadow-green-500/5 dark:hover:shadow-none
+             rounded-xl p-5
+             transition-[border-color,box-shadow,color] duration-200;
+    }
+    .course-card-num {
+      @apply font-terminal font-bold text-2xl leading-none select-none
+             text-slate-200 dark:text-slate-800
+             group-hover:text-green-500/30 dark:group-hover:text-green-400/20
+             transition-colors;
+    }
+    .cmd-badge {
+      @apply font-terminal text-xs px-2 py-0.5 rounded
+             bg-green-500/10 dark:bg-green-400/10
+             text-green-700 dark:text-green-400
+             border border-green-500/20 dark:border-green-400/20;
+    }
+  </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 hero-gradient">
 
   <!-- ── Header ─────────────────────────────────────────────────────────── -->
-  <header class="flex items-center justify-between px-8 pt-7 pb-2 max-w-7xl mx-auto">
-    <span class="text-green-400 font-bold text-xl font-terminal">linux-quest</span>
-    <div id="nav-auth" class="flex items-center gap-3">
-      <a href="lessons.html"
-         class="text-sm text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-4 py-2 rounded transition-colors">
-        Start Learning →
-      </a>
+  <header class="sticky top-0 z-40 flex items-center justify-between px-8 py-4 max-w-7xl mx-auto
+                 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md
+                 border-b border-slate-200/60 dark:border-slate-800/60">
+    <a href="index.html"
+       class="text-green-600 dark:text-green-400 font-bold text-xl font-terminal
+              hover:text-green-700 dark:hover:text-green-300 transition-colors">
+      linux-quest
+    </a>
+    <div class="flex items-center gap-2">
+      <!-- Theme toggle -->
+      <button id="theme-toggle" aria-label="Toggle theme"
+        class="p-2 rounded-lg cursor-pointer
+               text-slate-500 dark:text-slate-400
+               hover:text-slate-900 dark:hover:text-white
+               hover:bg-slate-200 dark:hover:bg-slate-800
+               transition-colors">
+        <!-- Sun: shown in dark mode, click → go light -->
+        <svg class="hidden dark:block w-4 h-4" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Moon: shown in light mode, click → go dark -->
+        <svg class="block dark:hidden w-4 h-4" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <div id="nav-auth" class="flex items-center gap-3">
+        <a href="lessons.html"
+           class="text-sm text-slate-600 dark:text-slate-300
+                  hover:text-slate-900 dark:hover:text-white
+                  border border-slate-300 dark:border-slate-700
+                  hover:border-slate-400 dark:hover:border-slate-500
+                  px-4 py-2 rounded-lg transition-colors">
+          Start Learning →
+        </a>
+      </div>
     </div>
   </header>
 
   <!-- ── Hero ───────────────────────────────────────────────────────────── -->
   <section class="text-center px-4 pt-20 pb-16 max-w-4xl mx-auto" aria-labelledby="hero-heading">
-    <div class="inline-flex items-center gap-2 text-green-400 font-terminal text-xs mb-8 border border-green-400/20 bg-green-400/5 px-3 py-1 rounded-full">
-      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-      50+ interactive challenges · No setup required
+    <div class="inline-flex items-center gap-2 font-terminal text-xs mb-8 px-3 py-1.5 rounded-full
+                text-green-600 dark:text-green-400
+                border border-green-500/30 dark:border-green-400/20
+                bg-green-500/5 dark:bg-green-400/5">
+      <span class="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse"></span>
+      84 interactive challenges · No setup required
     </div>
     <h1 id="hero-heading" class="text-4xl md:text-5xl lg:text-[3.4em] font-bold leading-tight mb-6">
       Learn Linux.<br>
-      <span class="text-green-400">Finally make it stick.</span>
+      <span class="text-green-600 dark:text-green-400">Finally make it stick.</span>
     </h1>
-    <p class="text-slate-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+    <p class="text-slate-600 dark:text-slate-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
       Stop reading man pages. linux-quest teaches you Linux commands through real terminal
       challenges, so they become instinct, not something you Google every time.
     </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
       <a href="lessons.html"
-         class="bg-green-400 hover:bg-green-300 text-slate-950 font-bold px-8 py-3 rounded-lg transition-colors text-lg">
+         class="bg-green-500 dark:bg-green-400
+                hover:bg-green-600 dark:hover:bg-green-300
+                text-white dark:text-slate-950
+                font-bold px-8 py-3 rounded-lg transition-colors text-lg
+                shadow-lg shadow-green-500/20 dark:shadow-green-400/10">
         Start Learning for Free
       </a>
       <a href="#how-it-works"
-         class="border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-3 rounded-lg transition-colors text-lg">
+         class="border border-slate-300 dark:border-slate-700
+                hover:border-slate-400 dark:hover:border-slate-500
+                text-slate-600 dark:text-slate-300
+                hover:text-slate-900 dark:hover:text-white
+                px-8 py-3 rounded-lg transition-colors text-lg">
         How it works ↓
       </a>
+    </div>
+    <!-- Stats strip -->
+    <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-terminal
+                text-slate-500 dark:text-slate-500">
+      <span><span class="font-semibold text-slate-800 dark:text-slate-200">84</span> challenges</span>
+      <span class="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+      <span><span class="font-semibold text-slate-800 dark:text-slate-200">40</span> lessons</span>
+      <span class="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+      <span><span class="font-semibold text-slate-800 dark:text-slate-200">8</span> sections</span>
+      <span class="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+      <span>free to start</span>
     </div>
   </section>
 
   <!-- ── Demo terminal ──────────────────────────────────────────────────── -->
   <section class="px-4 mb-32 max-w-3xl mx-auto" aria-label="Interactive Demo">
-    <div class="rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+    <div class="rounded-xl overflow-hidden terminal-glow border border-slate-800">
       <div class="flex items-center gap-2 px-4 py-3 bg-slate-900 border-b border-slate-800">
         <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
         <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
@@ -75,54 +171,236 @@
   </section>
 
   <!-- ── How it works ───────────────────────────────────────────────────── -->
-  <section id="how-it-works" class="border-t border-slate-800 px-4 py-24">
-    <div class="max-w-5xl mx-auto grid gap-12 md:grid-cols-3">
-      <div>
-        <div class="text-green-400 font-terminal text-5xl font-bold mb-4 leading-none">01</div>
-        <h3 class="text-xl font-semibold mb-3">Learn by doing</h3>
-        <p class="text-slate-400 leading-relaxed">
-          Every concept is practiced immediately in a real terminal simulation.
-          No passive reading, just typing.
+  <section id="how-it-works" class="border-t border-slate-200 dark:border-slate-800 px-4 py-24">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-2xl md:text-3xl font-bold mb-3">How it works</h2>
+        <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">Three steps to Linux fluency, no prior experience required.</p>
+      </div>
+      <div class="grid gap-6 md:grid-cols-3">
+        <div class="p-6 rounded-xl cursor-default
+                    border border-slate-200 dark:border-slate-800
+                    hover:border-green-500/40 dark:hover:border-green-400/30
+                    bg-white dark:bg-slate-900/40
+                    hover:shadow-md dark:hover:shadow-none
+                    transition-all duration-200">
+          <div class="text-green-600 dark:text-green-400 font-terminal text-4xl font-bold mb-4 leading-none">01</div>
+          <h3 class="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">Learn by doing</h3>
+          <p class="text-slate-500 dark:text-slate-400 leading-relaxed text-sm">
+            Every concept is practiced immediately in a real terminal simulation.
+            No passive reading, just typing.
+          </p>
+        </div>
+        <div class="p-6 rounded-xl cursor-default
+                    border border-slate-200 dark:border-slate-800
+                    hover:border-green-500/40 dark:hover:border-green-400/30
+                    bg-white dark:bg-slate-900/40
+                    hover:shadow-md dark:hover:shadow-none
+                    transition-all duration-200">
+          <div class="text-green-600 dark:text-green-400 font-terminal text-4xl font-bold mb-4 leading-none">02</div>
+          <h3 class="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">Build muscle memory</h3>
+          <p class="text-slate-500 dark:text-slate-400 leading-relaxed text-sm">
+            Challenges are structured to reinforce key patterns. Your progress is
+            saved so you always know where you left off.
+          </p>
+        </div>
+        <div class="p-6 rounded-xl cursor-default
+                    border border-slate-200 dark:border-slate-800
+                    hover:border-green-500/40 dark:hover:border-green-400/30
+                    bg-white dark:bg-slate-900/40
+                    hover:shadow-md dark:hover:shadow-none
+                    transition-all duration-200">
+          <div class="text-green-600 dark:text-green-400 font-terminal text-4xl font-bold mb-4 leading-none">03</div>
+          <h3 class="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">Structured from zero</h3>
+          <p class="text-slate-500 dark:text-slate-400 leading-relaxed text-sm">
+            8 sections from navigation to shell scripting. Each lesson builds on
+            the last. No prior Linux knowledge required.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Course Overview ───────────────────────────────────────────────── -->
+  <section id="course-overview" class="border-t border-slate-200 dark:border-slate-800 px-4 py-24">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <div class="inline-flex items-center gap-2 font-terminal text-xs mb-5 px-3 py-1.5 rounded-full
+                    text-slate-500 dark:text-slate-400
+                    border border-slate-300/60 dark:border-slate-700/60
+                    bg-slate-100/60 dark:bg-slate-800/40">
+          8 sections · 40 lessons · 84 challenges
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold mb-3">What you'll learn</h2>
+        <p class="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
+          From your very first command to reading man pages like a pro. Every section builds on the last.
         </p>
       </div>
-      <div>
-        <div class="text-green-400 font-terminal text-5xl font-bold mb-4 leading-none">02</div>
-        <h3 class="text-xl font-semibold mb-3">Build muscle memory</h3>
-        <p class="text-slate-400 leading-relaxed">
-          Challenges are structured to reinforce key patterns. Your progress is
-          saved so you always know where you left off.
-        </p>
-      </div>
-      <div>
-        <div class="text-green-400 font-terminal text-5xl font-bold mb-4 leading-none">03</div>
-        <h3 class="text-xl font-semibold mb-3">Structured from zero</h3>
-        <p class="text-slate-400 leading-relaxed">
-          10 topics from navigation to shell scripting. Each lesson builds on
-          the last. No prior Linux knowledge required.
-        </p>
+      <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">📁</span>
+            <span class="course-card-num">01</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">Navigating Directories</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Your first steps in the filesystem. Learn to tell where you are, see what's around you, and get anywhere you need to go.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">pwd</code>
+            <code class="cmd-badge">ls</code>
+            <code class="cmd-badge">cd</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">📄</span>
+            <span class="course-card-num">02</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">File Operations</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Create, copy, move, rename, delete. The daily bread of terminal work — done right from day one.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">touch</code>
+            <code class="cmd-badge">mkdir</code>
+            <code class="cmd-badge">cp</code>
+            <code class="cmd-badge">mv</code>
+            <code class="cmd-badge">rm</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">📖</span>
+            <span class="course-card-num">03</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">Reading File Content</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Open files without a GUI. Print, preview, and skim — read exactly what you need in seconds.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">cat</code>
+            <code class="cmd-badge">echo</code>
+            <code class="cmd-badge">head</code>
+            <code class="cmd-badge">tail</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">🔍</span>
+            <span class="course-card-num">04</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">Search &amp; Find</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Stop scrolling, start searching. Find any text or file across an entire directory tree in one command.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">grep</code>
+            <code class="cmd-badge">find</code>
+            <code class="cmd-badge">diff</code>
+            <code class="cmd-badge">locate</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">✏️</span>
+            <span class="course-card-num">05</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">Text Processing</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Bend text to your will. Count, sort, deduplicate, and extract columns — without writing a single script.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">wc</code>
+            <code class="cmd-badge">sort</code>
+            <code class="cmd-badge">uniq</code>
+            <code class="cmd-badge">cut</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">🔐</span>
+            <span class="course-card-num">06</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">Permissions &amp; Ownership</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Demystify <span class="font-terminal">rwxr-xr-x</span>. Understand who controls what, and stop seeing "Permission denied" as a mystery.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">chmod</code>
+            <code class="cmd-badge">chown</code>
+            <code class="cmd-badge">stat</code>
+            <code class="cmd-badge">du</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">⚙️</span>
+            <span class="course-card-num">07</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">System Information</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Read your machine's pulse. Who you are, what's running, what time it is — all at a glance.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">whoami</code>
+            <code class="cmd-badge">ps</code>
+            <code class="cmd-badge">uname</code>
+            <code class="cmd-badge">env</code>
+          </div>
+        </div>
+
+        <div class="group course-card">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-2xl leading-none">💻</span>
+            <span class="course-card-num">08</span>
+          </div>
+          <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 leading-snug">Session &amp; Navigation</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+            Work like a pro. History, shortcuts, and man pages — the habits that separate beginners from power users.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <code class="cmd-badge">history</code>
+            <code class="cmd-badge">which</code>
+            <code class="cmd-badge">man</code>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
   <!-- ── Final CTA ──────────────────────────────────────────────────────── -->
-  <section class="border-t border-slate-800 px-4 py-24">
+  <section class="border-t border-slate-200 dark:border-slate-800 px-4 py-24">
     <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
       <div>
         <h2 class="text-2xl md:text-3xl font-bold mb-2">No setup. No downloads.</h2>
-        <p class="text-slate-400">Open your browser and start building muscle memory right now.</p>
+        <p class="text-slate-500 dark:text-slate-400">Open your browser and start building muscle memory right now.</p>
       </div>
       <a href="lessons.html"
-         class="flex-shrink-0 bg-green-400 hover:bg-green-300 text-slate-950 font-bold px-8 py-3 rounded-lg transition-colors whitespace-nowrap text-lg">
+         class="flex-shrink-0
+                bg-green-500 dark:bg-green-400
+                hover:bg-green-600 dark:hover:bg-green-300
+                text-white dark:text-slate-950
+                font-bold px-8 py-3 rounded-lg transition-colors whitespace-nowrap text-lg
+                shadow-lg shadow-green-500/20 dark:shadow-green-400/10">
         Start Learning for Free →
       </a>
     </div>
   </section>
 
   <!-- ── Footer ─────────────────────────────────────────────────────────── -->
-  <footer class="border-t border-slate-800 px-8 py-8">
-    <div class="max-w-7xl mx-auto flex items-center justify-between text-slate-600 text-sm font-terminal">
+  <footer class="border-t border-slate-200 dark:border-slate-800 px-8 py-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between
+                text-slate-400 dark:text-slate-600 text-sm font-terminal">
       <span>© 2026 linux-quest</span>
-      <a href="lessons.html" class="hover:text-slate-400 transition-colors">Lessons</a>
     </div>
   </footer>
 
@@ -226,44 +504,82 @@
   </script>
 
   <!-- ── Auth modal ─────────────────────────────────────────────────────── -->
-  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl relative">
-      <button id="auth-close-x" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300 text-lg leading-none transition-colors">✕</button>
-      <h2 id="auth-modal-title" class="text-lg font-bold text-white mb-1 font-terminal">Sign in to linux-quest</h2>
-      <p id="auth-modal-desc" class="text-sm text-slate-400 mb-6">Welcome back.</p>
-      <input id="auth-email" type="email" placeholder="you@example.com"
-        class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-3 focus:outline-none focus:border-green-400 transition-colors"
-        autocomplete="email">
-      <input id="auth-password" type="password" placeholder="Password (min 8 characters)" minlength="8"
-        class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-4 focus:outline-none focus:border-green-400 transition-colors"
-        autocomplete="current-password">
-      <button id="auth-submit"
-        class="w-full bg-green-400 hover:bg-green-300 text-slate-950 font-bold py-2.5 rounded-lg text-sm transition-colors">
-        Sign in
-      </button>
-      <p id="auth-message" class="hidden mt-4 text-sm text-center font-terminal"></p>
-      <p class="mt-4 text-center text-xs text-slate-500">
-        <span id="auth-toggle-text">Don't have an account?</span>
-        <button id="auth-toggle" class="text-green-400 hover:text-green-300 ml-1 font-terminal">Create one</button>
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center
+                               bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900
+                border border-slate-200 dark:border-slate-700
+                rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl relative">
+      <button id="auth-close-x"
+        class="absolute top-4 right-4 text-lg leading-none transition-colors
+               text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">✕</button>
+      <h2 id="auth-modal-title"
+        class="text-lg font-bold mb-1 font-terminal text-slate-900 dark:text-white">
+        Sign in to linux-quest
+      </h2>
+      <p id="auth-modal-desc" class="text-sm mb-6 text-slate-500 dark:text-slate-400">
+        Sign in with GitHub to save your progress.
       </p>
+      <button id="auth-github-btn"
+        class="w-full flex items-center justify-center gap-3 font-bold py-2.5 rounded-lg text-sm transition-colors
+               bg-slate-900 hover:bg-slate-700 dark:bg-white dark:hover:bg-slate-100
+               text-white dark:text-slate-900 cursor-pointer">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+        </svg>
+        Continue with GitHub
+      </button>
     </div>
   </div>
 
   <!-- ── Premium gate modal ─────────────────────────────────────────────── -->
-  <div id="premium-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl text-center relative">
-      <button id="premium-close-x" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300 text-lg leading-none transition-colors">✕</button>
-      <div class="text-3xl mb-4">⚡</div>
-      <h2 class="text-lg font-bold text-white mb-2 font-terminal">Premium Access</h2>
-      <p class="text-sm text-slate-400 mb-6">Advanced sections require a Premium subscription.<br>Stripe integration coming soon.</p>
+  <div id="premium-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center
+                                  bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900
+                border border-slate-200 dark:border-slate-700
+                rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl text-center relative">
+      <button id="premium-close-x"
+        class="absolute top-4 right-4 text-lg leading-none transition-colors
+               text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">✕</button>
+      <div class="flex justify-center mb-4">
+        <svg class="w-8 h-8 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      </div>
+      <h2 class="text-lg font-bold mb-2 font-terminal text-slate-900 dark:text-white">Star to Unlock</h2>
+      <p class="text-sm mb-1 text-slate-500 dark:text-slate-400">
+        You've finished the free sections! Star linux-quest on GitHub to unlock Search, Text Processing, Permissions, and more — completely free.
+      </p>
+      <p class="text-xs mb-5 text-slate-400 dark:text-slate-500 italic">
+        No GitHub account? Unfortunately there's no other way to continue — a star is all we ask in return for the full course.
+      </p>
+      <a href="https://github.com/Poppo9/linux-quest" target="_blank" rel="noopener"
+        class="w-full flex items-center justify-center gap-2 mb-3 py-2.5 rounded-lg text-sm font-bold transition-colors
+               bg-slate-900 hover:bg-slate-700 dark:bg-white dark:hover:bg-slate-100
+               text-white dark:text-slate-900">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+        </svg>
+        ⭐ Star on GitHub
+      </a>
+      <button id="premium-verify-btn"
+        class="w-full py-2.5 rounded-lg text-sm font-terminal font-bold transition-colors cursor-pointer
+               bg-green-500 hover:bg-green-600 text-white mb-3">
+        I've starred it — verify ✓
+      </button>
       <button id="premium-close"
-        class="w-full border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white py-2.5 rounded-lg text-sm font-terminal transition-colors">
-        Got it
+        class="w-full py-2 rounded-lg text-sm font-terminal transition-colors cursor-pointer
+               text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
+        Maybe later
       </button>
     </div>
   </div>
 
   <script>
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      var isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('lq-theme', isDark ? 'dark' : 'light');
+    });
+
     renderAuthUI();
     initAuth(() => {});
   </script>

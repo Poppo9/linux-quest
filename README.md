@@ -2,17 +2,24 @@
 
 A gamified, interactive Linux command tutorial — learn bash by doing, not by reading.
 
-Each lesson explains a command in detail, then drops you into a simulated terminal to practice it. Progress is saved in your browser and synced to the cloud when signed in.
+Each lesson explains a command in detail, then drops you into a simulated terminal to practice it.
+
+**Access tiers:**
+- **Free (no account):** first 3 sections (Navigating Directories, File Operations, Reading File Content)
+- **Full access:** star [Poppo9/linux-quest](https://github.com/Poppo9/linux-quest) on GitHub and sign in — completely free
+
+Progress is saved in your browser and synced to the cloud when signed in.
 
 ## Structure
 
-- `index.html` — landing page
+- `index.html` — landing page (hero, demo terminal, "What you'll learn" course overview, CTA)
 - `lessons.html` — interactive lessons with simulated terminal
 - `css/styles.css` — animations, terminal styles, font imports
 - `js/terminal.js` — `VirtualTerminal` class (simulated filesystem + 43 commands)
 - `js/lessons.js` — `LessonEngine` class (lesson loading, validation, progress, sidebar)
-- `js/auth.js` — Supabase auth, progress sync, tier gating
-- `data/lessons.json` — all lesson/challenge content
+- `js/auth.js` — GitHub OAuth via Supabase, star verification, progress sync, tier gating
+- `netlify/functions/verify-star.js` — checks GitHub star → unlocks premium in DB
+- `data/lessons.json` — all lesson/challenge content (lesson titles are descriptive, no command names in parens)
 
 ---
 
