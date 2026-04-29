@@ -207,9 +207,13 @@ function renderAuthUI() {
 
   if (_currentUser) {
     nav.innerHTML = `
-      <span id="nav-user-email" class="text-xs font-terminal text-slate-400 hidden sm:inline"></span>
+      <span id="nav-user-email" class="text-xs font-terminal text-slate-500 dark:text-slate-400 hidden sm:inline"></span>
       <button id="auth-signout-btn"
-        class="text-xs font-terminal text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded transition-colors">
+        class="text-xs font-terminal px-3 py-1.5 rounded transition-colors cursor-pointer
+               text-slate-600 dark:text-slate-400
+               hover:text-slate-900 dark:hover:text-white
+               border border-slate-300 dark:border-slate-700
+               hover:border-slate-400 dark:hover:border-slate-500">
         Log out
       </button>`;
     document.getElementById('nav-user-email').textContent = _currentUser.email;
@@ -217,7 +221,11 @@ function renderAuthUI() {
   } else {
     nav.innerHTML = `
       <button id="auth-signin-btn"
-        class="text-xs font-terminal text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded transition-colors">
+        class="text-xs font-terminal px-3 py-1.5 rounded transition-colors cursor-pointer
+               text-slate-600 dark:text-slate-300
+               hover:text-slate-900 dark:hover:text-white
+               border border-slate-300 dark:border-slate-700
+               hover:border-slate-400 dark:hover:border-slate-500">
         Sign in
       </button>`;
     document.getElementById('auth-signin-btn').addEventListener('click', () => {
@@ -337,7 +345,7 @@ async function _handleAuthSubmit() {
 
   if (mode === 'signup' && password.length < 8) {
     msg.textContent = 'Password must be at least 8 characters.';
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-400';
+    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-600 dark:text-red-400';
     msg.classList.remove('hidden');
     setTimeout(() => { submit.disabled = false; submit.textContent = 'Create account'; }, 1000);
     return;
@@ -349,7 +357,7 @@ async function _handleAuthSubmit() {
 
   if (error) {
     msg.textContent = error.message;
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-400';
+    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-600 dark:text-red-400';
     msg.classList.remove('hidden');
     setTimeout(() => { submit.disabled = false; submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in'; }, 3000);
     return;
@@ -360,7 +368,7 @@ async function _handleAuthSubmit() {
 
   if (mode === 'signup' && data?.user && !data?.session) {
     msg.textContent = 'Check your email to confirm your account.';
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-green-400';
+    msg.className   = 'mt-4 text-sm text-center font-terminal text-green-600 dark:text-green-400';
     msg.classList.remove('hidden');
   }
   // If session exists (email confirmation off), SIGNED_IN fires automatically

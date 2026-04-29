@@ -55,3 +55,6 @@ Thumbs.db
 
 # Supabase config (generated from env vars at build time — do not commit)
 js/config.js
+
+# Claude skills
+.claude/

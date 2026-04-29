@@ -25,7 +25,7 @@ body {
   font-feature-settings: 'liga' 0, 'calt' 0;
 }
 
-/* ── Terminal scrollbar ───────────────────────────────────────────────────── */
+/* ── Terminal scrollbar (always dark — terminal stays dark) ──────────────── */
 .terminal-body::-webkit-scrollbar       { width: 4px; }
 .terminal-body::-webkit-scrollbar-track { background: transparent; }
 .terminal-body::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
@@ -60,6 +60,26 @@ body {
 /* ── Smooth scrolling ────────────────────────────────────────────────────── */
 html { scroll-behavior: smooth; }
 
+/* ── Page-level color transitions when switching theme ───────────────────── */
+body,
+nav, aside, main, header, footer,
+.theme-transition {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+}
+
+/* ── Terminal glow (demo + lessons) ─────────────────────────────────────── */
+.terminal-glow {
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.08), 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Hero background radial gradient ─────────────────────────────────────── */
+.hero-gradient {
+  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(74, 222, 128, 0.07) 0%, transparent 70%);
+}
+html:not(.dark) .hero-gradient {
+  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(22, 163, 74, 0.06) 0%, transparent 70%);
+}
+
 /* ── Sidebar accordion animation ─────────────────────────────────────────── */
 .sidebar-lesson-list {
   overflow: hidden;
@@ -75,14 +95,12 @@ html { scroll-behavior: smooth; }
   overflow: hidden;
   max-height: 800px;
   opacity: 1;
-  /* speed when collapsing (transition applies on the "from" state) */
   transition: max-height 0.55s ease, opacity 0.4s ease;
 }
 #challenge-panel.collapsed #challenge-panel-full {
   max-height: 0;
   opacity: 0;
   pointer-events: none;
-  /* speed when expanding */
   transition: max-height 0.2s ease, opacity 0.15s ease;
 }
 #challenge-panel-summary {
@@ -94,4 +112,7 @@ html { scroll-behavior: smooth; }
 }
 #challenge-panel-summary:hover {
   background-color: rgba(51, 65, 85, 0.4);
+}
+html:not(.dark) #challenge-panel-summary:hover {
+  background-color: rgba(226, 232, 240, 0.7);
 }
