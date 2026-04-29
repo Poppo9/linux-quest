@@ -467,6 +467,107 @@
               "success_message": "✓ Limiting find to a subdirectory keeps results focused and searches faster!"
             }
           ]
+        },
+        {
+          "id": "grep-recursive",
+          "title": "Recursive search (grep -r)",
+          "concept": "grep -r searches inside every file in a directory and all its subdirectories at once.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "grep -r: Recursive search\n\nNormally grep searches a single file. With -r (recursive), you give it a directory and it searches every file inside, including nested subdirectories.\n\nSyntax:  grep -r <pattern> <directory>\n\nOutput format:\n  ./filename.txt:matching line content\n\nThe filename is always shown as a prefix so you know where each match came from.\n\nExample:\n  grep -r error .    search for 'error' in all files under current dir",
+              "instruction": "Search for the word TODO in all files under your current directory.",
+              "expected_commands": [
+                "grep -r TODO .",
+                "grep -r todo ."
+              ],
+              "hint": "grep -r searches recursively: grep -r TODO .",
+              "success_message": "✓ grep -r scanned every file in the tree and found all TODO lines!"
+            },
+            {
+              "explanation": "grep -ri: Recursive + case-insensitive\n\nFlags can be combined into a single argument:\n  grep -ri pattern dir\n  (same as grep -r -i pattern dir)\n\nThis is a common combination: recursively search without caring about capitalisation.\n\nYou can also write the flags in any order: -ir works the same as -ri.",
+              "instruction": "Search for 'alice' (any case) in all files under the current directory.",
+              "expected_commands": [
+                "grep -ri alice .",
+                "grep -ir alice ."
+              ],
+              "hint": "Combine flags: grep -ri alice .",
+              "success_message": "✓ -ri combines recursive and case-insensitive — one command, entire tree!"
+            },
+            {
+              "explanation": "grep -r in a specific subdirectory\n\nYou can point grep -r at any subdirectory to limit the search scope:\n  grep -r pattern Documents/\n\nThis is useful when your project is large and you know roughly where the file lives — much faster than scanning everything.\n\nSyntax:  grep -r <pattern> <subdirectory>",
+              "instruction": "Search for the word 'python' inside the Documents directory only.",
+              "expected_commands": [
+                "grep -r python Documents",
+                "grep -r python Documents/",
+                "grep -ri python Documents",
+                "grep -ri python Documents/"
+              ],
+              "hint": "Use a subdirectory as the search root: grep -r python Documents",
+              "success_message": "✓ Scoping grep -r to a subdirectory keeps results focused!"
+            }
+          ]
+        },
+        {
+          "id": "diff",
+          "title": "Comparing files (diff)",
+          "concept": "diff shows exactly which lines changed between two files — nothing more, nothing less.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "diff: Compare two files line by line\n\nSyntax:  diff <file1> <file2>\n\ndiff reads both files and shows only the lines that differ. Lines that are the same are not shown.\n\nOutput format (traditional diff):\n  5,6c5,6      → lines 5-6 in file1 were Changed to lines 5-6 in file2\n  < old line   → this line exists only in file1\n  ---          → separator between old and new\n  > new line   → this line exists only in file2\n\nOther change types:\n  3d2          → line 3 Deleted from file1\n  4a5          → line Added after line 4 in file1\n\nIf diff produces no output, the files are identical.",
+              "instruction": "Compare notes.txt with notes_v2.txt to see what changed.",
+              "expected_commands": [
+                "diff notes.txt notes_v2.txt"
+              ],
+              "hint": "diff file1 file2: diff notes.txt notes_v2.txt",
+              "success_message": "✓ diff pinpointed exactly which lines changed between the two versions!"
+            },
+            {
+              "explanation": "diff in practice: reviewing revisions\n\nYou can diff any two text files — config files, source code, documents.\n\nReading the output:\n  • The header line (e.g. 5c5) tells you the line numbers affected.\n  • Lines starting with < are from the first file (what was removed or changed from).\n  • Lines starting with > are from the second file (what was added or changed to).\n\nTip: swap the files to reverse the perspective:\n  diff new.txt old.txt   now < means new, > means old",
+              "instruction": "Compare Documents/letter.txt with Documents/letter_v2.txt.",
+              "expected_commands": [
+                "diff Documents/letter.txt Documents/letter_v2.txt"
+              ],
+              "hint": "diff Documents/letter.txt Documents/letter_v2.txt",
+              "success_message": "✓ diff showed every line that changed in the revised letter!"
+            }
+          ]
+        },
+        {
+          "id": "locate",
+          "title": "Finding files fast (locate)",
+          "concept": "locate searches a pre-built index of the filesystem by name — nearly instant compared to find.",
+          "initial_cwd": "/home/user",
+          "challenges": [
+            {
+              "explanation": "locate: Fast file search by name\n\nUnlike find (which walks the filesystem in real time), locate queries a pre-built database that is updated periodically (usually daily via updatedb).\n\nSyntax:  locate <pattern>\n\nlocate does a substring match against the full path of every file:\n  locate notes.txt    matches /home/user/notes.txt\n  locate .csv         matches any path containing .csv\n\nResult: full absolute paths, one per line.\n\nTrade-off: locate is much faster than find, but may miss files created after the last database update. Use find when you need real-time results.",
+              "instruction": "Use locate to find the file notes.txt.",
+              "expected_commands": [
+                "locate notes.txt"
+              ],
+              "hint": "locate filename: locate notes.txt",
+              "success_message": "✓ locate returned the full path instantly!"
+            },
+            {
+              "explanation": "locate with a partial name or extension\n\nBecause locate does a substring match, you can search by extension or partial name:\n  locate .csv        all paths containing '.csv'\n  locate report      all paths containing 'report'\n\nThis is handy when you remember part of a filename but not the full name.\n\nNote: the match is against the entire path, so 'locate Documents' would also match files inside a Documents directory.",
+              "instruction": "Find all files whose path contains '.csv'.",
+              "expected_commands": [
+                "locate .csv"
+              ],
+              "hint": "locate .csv",
+              "success_message": "✓ locate matched everything in the filesystem that contains .csv in its path!"
+            },
+            {
+              "explanation": "locate vs find — when to use which\n\nUse locate when:\n  • You just need to find a file quickly by name.\n  • The file has existed for at least a day (database is up to date).\n\nUse find when:\n  • You need real-time results (newly created files).\n  • You want to filter by type, size, permissions, or modification time.\n  • You need to run a command on each result (-exec).\n\nA common pattern: start with locate to get a quick answer, switch to find when you need more power.",
+              "instruction": "Find all paths that contain 'setup' anywhere in their name.",
+              "expected_commands": [
+                "locate setup"
+              ],
+              "hint": "locate setup",
+              "success_message": "✓ locate is perfect for quick name-based lookups across the entire filesystem!"
+            }
+          ]
         }
       ]
     },

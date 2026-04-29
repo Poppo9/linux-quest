@@ -30,6 +30,8 @@ class VirtualTerminal {
       grep:     { help: 'search for pattern in files',            execute: (args) => this._grep(args) },
       // Search
       find:     { help: 'search for files in a directory',        execute: (args) => this._find(args) },
+      diff:     { help: 'compare files line by line',             execute: (args) => this._diff(args) },
+      locate:   { help: 'find files by name',                     execute: (args) => this._locate(args) },
       // Permissions & ownership
       chmod:    { help: 'change file permissions',                execute: (args) => this._chmod(args) },
       chown:    { help: 'change file owner',                      execute: (args) => this._chown(args) },
@@ -107,6 +109,17 @@ class VirtualTerminal {
                     '[ ] Read chapter 5',
                   ]
                 },
+                'notes_v2.txt': {
+                  type: 'file', size: 248, perms: '-rw-r--r--', date: 'Jan 16 12:00',
+                  content: [
+                    'Meeting notes - Jan 15',
+                    '------------------------',
+                    'TODO: follow up with team on project status',
+                    'TODO: update documentation',
+                    'TODO: review pull requests',
+                    'Next meeting: Friday 4pm',
+                  ]
+                },
                 'temp.txt': {
                   type: 'file', size: 32, perms: '-rw-r--r--', date: 'Jan 16 10:00',
                   content: ['temporary file - safe to delete']
@@ -150,6 +163,21 @@ class VirtualTerminal {
                         'Carol,78,C',
                         'Dave,91,A',
                         'Eve,88,B',
+                      ]
+                    },
+                    'letter_v2.txt': {
+                      type: 'file', size: 1240, perms: '-rw-r--r--', date: 'Jan 14 09:00',
+                      content: [
+                        'Dear Alice,',
+                        '',
+                        'I hope this message finds you well. I wanted to reach out about',
+                        'the upcoming conference next month. Would you be available to',
+                        'present the new findings and lead the Q&A session?',
+                        '',
+                        'Please let me know your availability by Wednesday.',
+                        '',
+                        'Best regards,',
+                        'Bob',
                       ]
                     },
                     'duplicates.txt': {
@@ -793,15 +821,25 @@ class VirtualTerminal {
   _grep(args) {
     let ignoreCase = false;
     let showLineNumbers = false;
+    let recursive = false;
     let pattern = null;
     const paths = [];
+
     for (const arg of args) {
-      if (arg === '-i') ignoreCase = true;
-      else if (arg === '-n') showLineNumbers = true;
-      else if (!pattern) pattern = arg;
-      else paths.push(arg);
+      if (arg.startsWith('-') && arg.length > 1 && !arg.startsWith('--')) {
+        for (const ch of arg.slice(1)) {
+          if (ch === 'i') ignoreCase = true;
+          else if (ch === 'n') showLineNumbers = true;
+          else if (ch === 'r' || ch === 'R') recursive = true;
+        }
+      } else if (pattern === null) {
+        pattern = arg;
+      } else {
+        paths.push(arg);
+      }
     }
-    if (!pattern) return { lines: [`<span class="text-red-400">grep: missing pattern</span>`], error: true };
+
+    if (pattern === null) return { lines: [`<span class="text-red-400">grep: missing pattern</span>`], error: true };
     if (!paths.length) return { lines: [`<span class="text-red-400">grep: missing file operand</span>`], error: true };
 
     let re;
@@ -811,26 +849,55 @@ class VirtualTerminal {
       return { lines: [`<span class="text-red-400">grep: invalid regex: ${this._esc(pattern)}</span>`], error: true };
     }
 
+    const safePattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const hiRe = new RegExp(safePattern, ignoreCase ? 'gi' : 'g');
+
+    const _matchLine = (line, idx, fileLabel) => {
+      if (!re.test(line)) return null;
+      const prefix = fileLabel ? `<span class="text-purple-400">${this._esc(fileLabel)}:</span>` : '';
+      const lineNum = showLineNumbers ? `<span class="text-green-400">${idx + 1}:</span>` : '';
+      const highlighted = this._esc(line).replace(hiRe, m => `<span class="text-yellow-300 font-bold">${m}</span>`);
+      return `${prefix}${lineNum}${highlighted}`;
+    };
+
     const lines = [];
-    for (const p of paths) {
-      const node = this._getNode(this._resolvePath(p));
-      if (!node) return { lines: [`<span class="text-red-400">grep: ${this._esc(p)}: No such file or directory</span>`], error: true };
-      if (node.type === 'dir') { lines.push(`<span class="text-red-400">grep: ${this._esc(p)}: Is a directory</span>`); continue; }
-      (node.content || []).forEach((line, idx) => {
-        if (re.test(line)) {
-          const prefix = paths.length > 1 ? `<span class="text-purple-400">${this._esc(p)}:</span>` : '';
-          const lineNum = showLineNumbers ? `<span class="text-green-400">${idx + 1}:</span>` : '';
-          const safePattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const highlighted = this._esc(line).replace(
-            new RegExp(safePattern, ignoreCase ? 'gi' : 'g'),
-            m => `<span class="text-yellow-300 font-bold">${m}</span>`
-          );
-          lines.push(`${prefix}${lineNum}${highlighted}`);
-        }
-      });
+
+    if (recursive) {
+      for (const p of paths) {
+        const node = this._getNode(this._resolvePath(p));
+        if (!node) return { lines: [`<span class="text-red-400">grep: ${this._esc(p)}: No such file or directory</span>`], error: true };
+        this._grepDir(node, p, re, _matchLine, showLineNumbers, lines);
+      }
+    } else {
+      const multiFile = paths.length > 1;
+      for (const p of paths) {
+        const node = this._getNode(this._resolvePath(p));
+        if (!node) return { lines: [`<span class="text-red-400">grep: ${this._esc(p)}: No such file or directory</span>`], error: true };
+        if (node.type === 'dir') { lines.push(`<span class="text-red-400">grep: ${this._esc(p)}: Is a directory</span>`); continue; }
+        (node.content || []).forEach((line, idx) => {
+          const result = _matchLine(line, idx, multiFile ? p : null);
+          if (result) lines.push(result);
+        });
+      }
     }
+
     if (!lines.length) return { lines: [], error: true };
     return { lines };
+  }
+
+  _grepDir(node, displayPath, re, _matchLine, showLineNumbers, results) {
+    if (node.type === 'file') {
+      (node.content || []).forEach((line, idx) => {
+        const result = _matchLine(line, idx, displayPath);
+        if (result) results.push(result);
+      });
+    } else if (node.type === 'dir') {
+      for (const [childName, childNode] of Object.entries(node.children || {})) {
+        if (childName.startsWith('.')) continue;
+        const childDisplay = displayPath === '.' ? `./${childName}` : `${displayPath}/${childName}`;
+        this._grepDir(childNode, childDisplay, re, _matchLine, showLineNumbers, results);
+      }
+    }
   }
 
   // ─── Search ────────────────────────────────────────────────────────────────
@@ -870,6 +937,81 @@ class VirtualTerminal {
         this._findRecurse(childNode, absPath === '/' ? '/' + childName : absPath + '/' + childName, childDisplay, namePattern, typeFilter, results);
       }
     }
+  }
+
+  _diff(args) {
+    if (args.length < 2) return { lines: [`<span class="text-red-400">diff: missing operand</span>`], error: true };
+    const [p1, p2] = args;
+    const n1 = this._getNode(this._resolvePath(p1));
+    const n2 = this._getNode(this._resolvePath(p2));
+    if (!n1) return { lines: [`<span class="text-red-400">diff: ${this._esc(p1)}: No such file or directory</span>`], error: true };
+    if (!n2) return { lines: [`<span class="text-red-400">diff: ${this._esc(p2)}: No such file or directory</span>`], error: true };
+    if (n1.type === 'dir') return { lines: [`<span class="text-red-400">diff: ${this._esc(p1)}: Is a directory</span>`], error: true };
+    if (n2.type === 'dir') return { lines: [`<span class="text-red-400">diff: ${this._esc(p2)}: Is a directory</span>`], error: true };
+
+    const a = n1.content || [], b = n2.content || [];
+    if (a.join('\n') === b.join('\n')) return { lines: [] };
+
+    // LCS via bottom-up DP
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+    for (let i = m - 1; i >= 0; i--)
+      for (let j = n - 1; j >= 0; j--)
+        dp[i][j] = a[i] === b[j] ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+
+    // Build edit ops
+    const ops = [];
+    let i = 0, j = 0;
+    while (i < m || j < n) {
+      if (i < m && j < n && a[i] === b[j]) { ops.push('='); i++; j++; }
+      else if (j < n && (i >= m || dp[i][j+1] >= dp[i+1][j])) { ops.push('+'); j++; }
+      else { ops.push('-'); i++; }
+    }
+
+    // Format hunks in traditional diff style
+    const out = [];
+    i = 0; j = 0;
+    let k = 0;
+    while (k < ops.length) {
+      if (ops[k] === '=') { i++; j++; k++; continue; }
+      const aS = i + 1, bS = j + 1;
+      const dels = [], ins = [];
+      while (k < ops.length && ops[k] !== '=') {
+        if (ops[k] === '-') { dels.push(a[i++]); }
+        else               { ins.push(b[j++]); }
+        k++;
+      }
+      const aE = i, bE = j;
+      let hdr;
+      if (dels.length && ins.length) {
+        hdr = `${dels.length > 1 ? aS+','+aE : aS}c${ins.length > 1 ? bS+','+bE : bS}`;
+      } else if (dels.length) {
+        hdr = `${dels.length > 1 ? aS+','+aE : aS}d${bS - 1}`;
+      } else {
+        hdr = `${aS - 1}a${ins.length > 1 ? bS+','+bE : bS}`;
+      }
+      out.push(`<span class="text-slate-400">${hdr}</span>`);
+      for (const l of dels) out.push(`<span class="text-red-400">&lt; ${this._esc(l)}</span>`);
+      if (dels.length && ins.length) out.push(`<span class="text-slate-500">---</span>`);
+      for (const l of ins)  out.push(`<span class="text-green-400">&gt; ${this._esc(l)}</span>`);
+    }
+    return { lines: out, error: true };
+  }
+
+  _locate(args) {
+    if (!args.length) return { lines: [`<span class="text-red-400">locate: missing argument</span>`], error: true };
+    const pattern = args[0].toLowerCase();
+    const results = [];
+    const walk = (node, path) => {
+      for (const [name, child] of Object.entries(node.children || {})) {
+        const fullPath = `${path}/${name}`;
+        if (name.toLowerCase().includes(pattern)) results.push(fullPath);
+        if (child.type === 'dir') walk(child, fullPath);
+      }
+    };
+    walk(this.fs, '');
+    if (!results.length) return { lines: [], error: true };
+    return { lines: results.map(r => this._esc(r)) };
   }
 
   // ─── Permissions & ownership ───────────────────────────────────────────────
