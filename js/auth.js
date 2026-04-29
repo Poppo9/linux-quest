@@ -252,12 +252,24 @@ function _initModals() {
   if (premiumModal && !premiumModal.dataset.wired) {
     premiumModal.dataset.wired = '1';
 
+    const closePremiumModal = () => premiumModal.classList.add('hidden');
+
     premiumModal.addEventListener('click', e => {
-      if (e.target === premiumModal) premiumModal.classList.add('hidden');
+      if (e.target === premiumModal) closePremiumModal();
     });
 
-    document.getElementById('premium-close').addEventListener('click', () => {
-      premiumModal.classList.add('hidden');
+    document.getElementById('premium-close').addEventListener('click', closePremiumModal);
+    document.getElementById('premium-close-x').addEventListener('click', closePremiumModal);
+  }
+
+  // Escape closes whichever modal is open
+  if (!document.body.dataset.escWired) {
+    document.body.dataset.escWired = '1';
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      document.getElementById('auth-modal')?.classList.add('hidden');
+      document.getElementById('premium-modal')?.classList.add('hidden');
+      document.getElementById('auth-message') && (document.getElementById('auth-message').className = 'hidden');
     });
   }
 }

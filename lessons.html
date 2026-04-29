@@ -302,7 +302,10 @@
 
   <!-- ── Premium gate modal ─────────────────────────────────────────────── -->
   <div id="premium-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl text-center">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl text-center relative">
+      <button id="premium-close-x"
+        class="absolute top-3 right-4 text-slate-500 hover:text-white text-xl font-bold leading-none transition-colors"
+        aria-label="Close">×</button>
       <div class="text-3xl mb-4">⚡</div>
       <h2 class="text-lg font-bold text-white mb-2 font-terminal">Premium required</h2>
       <p class="text-sm text-slate-400 mb-6">
@@ -325,6 +328,7 @@
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;margin-top:2px;">
       <input type="checkbox" id="dbg-premium" style="accent-color:#4ade80;"> Premium account
     </label>
+    <button id="dbg-refresh" style="margin-top:6px;width:100%;background:#f59e0b20;border:1px solid #f59e0b60;color:#fbbf24;border-radius:4px;padding:2px 0;cursor:pointer;font-family:monospace;font-size:11px;" onclick="engine._renderSidebar()">↺ refresh</button>
   </div>
 
 </body>
