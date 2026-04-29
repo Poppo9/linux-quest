@@ -65,15 +65,16 @@ exports.handler = async (event) => {
   }
 
   if (starred) {
-    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
-      method: 'PATCH',
+    // UPSERT in case the profiles row was not yet created by the DB trigger.
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
         apikey: SERVICE_ROLE_KEY,
         'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
+        Prefer: 'resolution=merge-duplicates,return=minimal',
       },
-      body: JSON.stringify({ is_premium: true, premium_since: new Date().toISOString() }),
+      body: JSON.stringify({ id: user.id, is_premium: true, premium_since: new Date().toISOString() }),
     });
   }
 
