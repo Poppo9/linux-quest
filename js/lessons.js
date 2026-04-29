@@ -265,11 +265,9 @@ class LessonEngine {
     const isFirstSection  = this.sectionIdx === 0;
     const isVeryFirst     = this.challengeIdx === 0 && isFirstLesson && isFirstSection;
     this.$prevBtn.disabled = isVeryFirst;
-    this.$prevBtn.textContent = (this.challengeIdx === 0 && isFirstLesson && !isFirstSection)
-      ? '◀ Prev Section'
-      : '◀ Prev';
+    this.$prevBtn.textContent = '◀ Previous';
 
-    // Next button: text changes at lesson boundary
+    // Next button
     const isLastChallenge = this.challengeIdx >= total - 1;
     const isLastLesson = this.lessonIdx >= section.lessons.length - 1;
 
@@ -277,11 +275,8 @@ class LessonEngine {
 
     if (isLastChallenge && isLastLesson) {
       const isLastSection = this.sectionIdx >= this.sections.length - 1;
-      this.$nextBtn.textContent = isLastSection ? 'Course complete ✓' : 'Next Section →';
+      this.$nextBtn.textContent = isLastSection ? 'Course complete ✓' : 'Next';
       this.$nextBtn.disabled = isLastSection;
-    } else if (isLastChallenge) {
-      this.$nextBtn.textContent = 'Next Lesson →';
-      this.$nextBtn.disabled = false;
     } else {
       this.$nextBtn.textContent = 'Next ▶';
       this.$nextBtn.disabled = false;
