@@ -151,23 +151,9 @@
   <script src="js/terminal.js"></script>
   <script src="js/lessons.js"></script>
   <script>
+    // Deferred init — placed after modals so _initModals() can find the DOM elements
     const terminal = new VirtualTerminal();
     const engine = new LessonEngine(terminal);
-
-    renderAuthUI();
-    initAuth((event, user, mergedProgress) => {
-      if (event === 'signed_in' && mergedProgress) {
-        engine.replaceProgress(mergedProgress);
-      }
-      renderAuthUI();
-    });
-
-    engine.init();
-
-    // Re-render sidebar immediately when debug checkboxes change
-    ['dbg-signed-in', 'dbg-premium'].forEach(id => {
-      document.getElementById(id)?.addEventListener('change', () => engine._renderSidebar());
-    });
 
     const input = document.getElementById('terminal-input');
     const cmdHistory = [];
@@ -276,7 +262,7 @@
       tabPrev = input.value.trim();
     }
 
-</script>
+  </script>
 
   <!-- ── Auth modal ─────────────────────────────────────────────────────── -->
   <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
@@ -330,6 +316,24 @@
     </label>
     <button id="dbg-refresh" style="margin-top:6px;width:100%;background:#f59e0b20;border:1px solid #f59e0b60;color:#fbbf24;border-radius:4px;padding:2px 0;cursor:pointer;font-family:monospace;font-size:11px;" onclick="engine._renderSidebar()">↺ refresh</button>
   </div>
+
+  <script>
+    // Runs after all modal HTML is in the DOM — _initModals() can now find the elements
+    renderAuthUI();
+    initAuth((event, user, mergedProgress) => {
+      if (event === 'signed_in' && mergedProgress) {
+        engine.replaceProgress(mergedProgress);
+      }
+      renderAuthUI();
+    });
+
+    engine.init();
+
+    // Re-render sidebar immediately when debug checkboxes change
+    ['dbg-signed-in', 'dbg-premium'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => engine._renderSidebar());
+    });
+  </script>
 
 </body>
 </html>
