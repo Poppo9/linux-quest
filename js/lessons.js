@@ -14,6 +14,7 @@ class LessonEngine {
     this.challengeSolved = false;
     this.panelLocked = false;
     this.progress = this._loadProgress();
+    this._expandedSectionId = undefined; // undefined = not yet initialised
 
     this.$out      = document.getElementById('terminal-output');
     this.$prompt   = document.getElementById('terminal-prompt');
@@ -88,6 +89,17 @@ class LessonEngine {
     if (!this.progress[sectionId][lessonId]) this.progress[sectionId][lessonId] = {};
     this.progress[sectionId][lessonId][idx] = true;
     this._saveProgress();
+    const user = getUser();
+    if (user) {
+      pushProgressRow(user.id, sectionId, lessonId, idx)
+        .catch(err => console.warn('Progress sync failed:', err));
+    }
+  }
+
+  replaceProgress(newProgress) {
+    this.progress = newProgress;
+    this._resumeProgress();
+    this._renderSidebar();
   }
 
   _isLessonComplete(sectionId, lessonId, total) {
@@ -98,24 +110,54 @@ class LessonEngine {
   // ─── Sidebar ──────────────────────────────────────────────────────────────
 
   _renderSidebar() {
+    const sectionIds = this.sections.map(s => s.id);
+
+    // Initialise expanded section on first render: use current section if accessible,
+    // otherwise fall back to the last accessible section before it (handles auth gates).
+    if (this._expandedSectionId === undefined) {
+      let expandId = null;
+      for (let si = 0; si <= this.sectionIdx && si < this.sections.length; si++) {
+        const s = this.sections[si];
+        const gate = typeof getGateForSection === 'function' ? getGateForSection(s.id, sectionIds) : null;
+        if (!s.locked && gate === null) expandId = s.id;
+      }
+      this._expandedSectionId = expandId ?? this.sections[0]?.id ?? null;
+    }
     this.$sidebar.innerHTML = '';
 
     this.sections.forEach((section, si) => {
+      // A section is auth-locked when the user lacks the required tier
+      const authGate = (typeof getGateForSection === 'function')
+        ? getGateForSection(section.id, sectionIds)
+        : null;
+      const isLocked  = section.locked || authGate !== null;
+      const isExpanded = !isLocked && this._expandedSectionId === section.id;
+
       const wrap = document.createElement('div');
       wrap.className = 'mb-1 pt-1 border-t border-slate-800/60';
+      wrap.dataset.sectionId = section.id;
 
       const header = document.createElement('div');
-      header.className = `flex items-center gap-2 px-3 py-2 rounded ${section.locked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'}`;
+      header.className = `flex items-center gap-2 px-3 py-2 rounded ${isLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'}`;
+      const badge = isLocked
+        ? '<span class="text-slate-400 text-xs">🔒</span>'
+        : `<span class="sidebar-chevron text-slate-500 text-xs select-none">${isExpanded ? '▾' : '▸'}</span>`;
       header.innerHTML = `
         <span class="text-base leading-none">${section.icon || '📄'}</span>
-        <span class="text-sm font-semibold ${section.locked ? 'text-slate-500' : 'text-white'} flex-1 leading-tight">${section.title}</span>
-        ${section.locked ? '<span class="text-slate-400 text-xs">🔒</span>' : ''}
+        <span class="text-sm font-semibold ${isLocked ? 'text-slate-500' : 'text-white'} flex-1 leading-tight">${section.title}</span>
+        ${badge}
       `;
+
+      if (!isLocked) {
+        header.addEventListener('click', () => this._toggleSection(section.id));
+      }
+
       wrap.appendChild(header);
 
-      if (!section.locked && section.lessons.length) {
+      // Always render lesson list; CSS transition handles open/close
+      if (!isLocked && section.lessons.length) {
         const list = document.createElement('div');
-        list.className = 'ml-3 mt-0.5 space-y-px';
+        list.className = `sidebar-lesson-list ml-3 space-y-px${isExpanded ? ' open' : ''}`;
 
         section.lessons.forEach((lesson, li) => {
           const done = this._isLessonComplete(section.id, lesson.id, lesson.challenges.length);
@@ -132,10 +174,11 @@ class LessonEngine {
           ].join(' ');
 
           item.innerHTML = `
-            <span class="w-4 text-center text-xs flex-shrink-0">${done ? '✓' : current ? '▶' : '○'}</span>
+            <span class="w-4 text-center text-xs flex-shrink-0">${done ? '●' : current ? '▶' : '○'}</span>
             <span class="leading-tight">${lesson.title}</span>
           `;
           item.addEventListener('click', () => {
+            this._expandedSectionId = section.id;
             this.sectionIdx = si;
             this.lessonIdx = li;
             this.challengeIdx = 0;
@@ -150,6 +193,17 @@ class LessonEngine {
       }
 
       this.$sidebar.appendChild(wrap);
+    });
+  }
+
+  // Toggle accordion without rebuilding the DOM (preserves CSS transition)
+  _toggleSection(sectionId) {
+    this._expandedSectionId = (this._expandedSectionId === sectionId) ? null : sectionId;
+    this.$sidebar.querySelectorAll('[data-section-id]').forEach(wrap => {
+      const open = wrap.dataset.sectionId === this._expandedSectionId;
+      wrap.querySelector('.sidebar-lesson-list')?.classList.toggle('open', open);
+      const chevron = wrap.querySelector('.sidebar-chevron');
+      if (chevron) chevron.textContent = open ? '▾' : '▸';
     });
   }
 
@@ -206,9 +260,14 @@ class LessonEngine {
     this.$enter.textContent = '';
     this.$enter.className = 'hidden';
 
-    // Prev button: disabled on very first challenge of first lesson
-    const isFirst = this.challengeIdx === 0 && this.lessonIdx === 0;
-    this.$prevBtn.disabled = isFirst;
+    // Prev button
+    const isFirstLesson   = this.lessonIdx === 0;
+    const isFirstSection  = this.sectionIdx === 0;
+    const isVeryFirst     = this.challengeIdx === 0 && isFirstLesson && isFirstSection;
+    this.$prevBtn.disabled = isVeryFirst;
+    this.$prevBtn.textContent = (this.challengeIdx === 0 && isFirstLesson && !isFirstSection)
+      ? '◀ Prev Section'
+      : '◀ Prev';
 
     // Next button: text changes at lesson boundary
     const isLastChallenge = this.challengeIdx >= total - 1;
@@ -217,8 +276,9 @@ class LessonEngine {
     this.$nextBtn.className = BTN_NEXT_DEFAULT;
 
     if (isLastChallenge && isLastLesson) {
-      this.$nextBtn.textContent = 'Section complete ✓';
-      this.$nextBtn.disabled = true;
+      const isLastSection = this.sectionIdx >= this.sections.length - 1;
+      this.$nextBtn.textContent = isLastSection ? 'Course complete ✓' : 'Next Section →';
+      this.$nextBtn.disabled = isLastSection;
     } else if (isLastChallenge) {
       this.$nextBtn.textContent = 'Next Lesson →';
       this.$nextBtn.disabled = false;
@@ -337,6 +397,17 @@ class LessonEngine {
       this.challengeIdx = lesson.challenges.length - 1;
       this.$lesTitle.textContent = lesson.title;
       this.$concept.textContent = lesson.concept || '';
+    } else if (this.sectionIdx > 0) {
+      this.sectionIdx--;
+      this._expandedSectionId = this.sections[this.sectionIdx]?.id;
+      const prevSection = this.sections[this.sectionIdx];
+      this.lessonIdx = prevSection.lessons.length - 1;
+      this.challengeIdx = prevSection.lessons[this.lessonIdx].challenges.length - 1;
+      this.wrongAttempts = 0;
+      this._loadLesson();
+      this._renderSidebar();
+      this.$input.focus();
+      return;
     } else {
       return;
     }
@@ -350,11 +421,30 @@ class LessonEngine {
     const section = this.sections[this.sectionIdx];
     const lesson = section.lessons[this.lessonIdx];
     const isLastChallenge = this.challengeIdx >= lesson.challenges.length - 1;
-    const isLastLesson = this.lessonIdx >= section.lessons.length - 1;
+    const isLastLesson    = this.lessonIdx >= section.lessons.length - 1;
+    const isLastSection   = this.sectionIdx >= this.sections.length - 1;
 
-    if (isLastChallenge && isLastLesson) return;
+    // End of entire course
+    if (isLastChallenge && isLastLesson && isLastSection) return;
 
-    if (isLastChallenge) {
+    if (isLastChallenge && isLastLesson) {
+      // Cross-section transition: check gate
+      const gate = checkGate(section.id, lesson.id, true);
+      if (gate === 'registration') { showGateModal('registration'); return; }
+      if (gate === 'premium')      { showGateModal('premium');      return; }
+
+      this.sectionIdx++;
+      this._expandedSectionId = this.sections[this.sectionIdx]?.id;
+      this.lessonIdx = 0;
+      this.challengeIdx = 0;
+      this._loadLesson();
+      this._renderSidebar();
+    } else if (isLastChallenge) {
+      // Within-section lesson transition
+      const gate = checkGate(section.id, lesson.id, isLastLesson);
+      if (gate === 'registration') { showGateModal('registration'); return; }
+      if (gate === 'premium')      { showGateModal('premium');      return; }
+
       this.lessonIdx++;
       this.challengeIdx = 0;
       this._loadLesson();

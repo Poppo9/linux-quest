@@ -1,5 +1,6 @@
 [build]
   publish = "."
+  command = "printf 'const SUPABASE_URL=\"%s\";\nconst SUPABASE_ANON_KEY=\"%s\";\n' \"$SUPABASE_URL\" \"$SUPABASE_ANON_KEY\" > js/config.js"
 
 [build.environment]
   NODE_VERSION = "20"

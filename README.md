@@ -2,15 +2,16 @@
 
 A gamified, interactive Linux command tutorial — learn bash by doing, not by reading.
 
-Each lesson explains a command in detail, then drops you into a simulated terminal to practice it. Progress is saved in your browser.
+Each lesson explains a command in detail, then drops you into a simulated terminal to practice it. Progress is saved in your browser and synced to the cloud when signed in.
 
 ## Structure
 
 - `index.html` — landing page
 - `lessons.html` — interactive lessons with simulated terminal
 - `css/styles.css` — animations, terminal styles, font imports
-- `js/terminal.js` — `VirtualTerminal` class (simulated filesystem + commands)
-- `js/lessons.js` — `LessonEngine` class (lesson loading, validation, progress)
+- `js/terminal.js` — `VirtualTerminal` class (simulated filesystem + 43 commands)
+- `js/lessons.js` — `LessonEngine` class (lesson loading, validation, progress, sidebar)
+- `js/auth.js` — Supabase auth, progress sync, tier gating
 - `data/lessons.json` — all lesson/challenge content
 
 ---
@@ -19,19 +20,17 @@ Each lesson explains a command in detail, then drops you into a simulated termin
 
 ### In scope — linux-quest
 
-Lezioni da implementare in `data/lessons.json`. I comandi sono già tutti simulati in `terminal.js`.
-
-| # | Sezione | Comandi | Stato |
-|---|---------|---------|-------|
-| 1 | **Navigating Directories** | `pwd`, `ls`, `ls -l`, `ls -a`, `ll`, `cd`, `cd ..`, `cd ~`, path assoluti/relativi | ✅ disponibile |
-| 2 | **File Operations** | `touch`, `mkdir`, `rmdir`, `cp`, `mv`, `rm`, `rm -r` | 🔒 da scrivere |
-| 3 | **Reading File Content** | `cat`, `head`, `tail`, `wc`, `wc -l` | 🔒 da scrivere |
-| 4 | **Search & Find** | `find`, `find -name`, `find -type`, `grep`, `grep -i`, `grep -n` | 🔒 da scrivere |
-| 5 | **Text Processing** | `sort`, `sort -r`, `uniq`, `uniq -c`, `cut -d -f` | 🔒 da scrivere |
-| 6 | **Permissions & Ownership** | `chmod` (ottale + simbolico), `chown`, `stat`, `file` | 🔒 da scrivere |
-| 7 | **System Information** | `uname`, `hostname`, `id`, `whoami`, `date`, `df`, `du`, `ps`, `env` | 🔒 da scrivere |
-| 8 | **Session & Navigation** | `history`, `which`, `man`, `echo`, `clear` | 🔒 da scrivere |
-| 9 | **Pipes & Redirection** | `\|`, `>`, `>>`, `<`, `tee`, `xargs`, `sed`, `awk`, `tr` | 🔧 richiede refactor parser (~10h) |
+| # | Section | Key commands | Status |
+|---|---------|--------------|--------|
+| 1 | **Navigating Directories** | `pwd`, `ls`, `ll`, `cd`, absolute/relative paths | ✅ 7 lessons |
+| 2 | **File Operations** | `touch`, `mkdir`, `cp`, `mv`, `rm`, `rmdir` | ✅ 6 lessons |
+| 3 | **Reading File Content** | `cat`, `echo`, `head`, `tail` | ✅ 4 lessons |
+| 4 | **Search & Find** | `grep`, `grep -r`, `find`, `diff`, `locate` | ✅ 5 lessons |
+| 5 | **Text Processing** | `sort`, `uniq`, `cut`, `wc` | ✅ 4 lessons |
+| 6 | **Permissions & Ownership** | `chmod`, `chown`, `stat`, `file`, `du`, `df` | ✅ 6 lessons |
+| 7 | **System Information** | `uname`, `hostname`, `date`, `ps`, `env` | ✅ 5 lessons |
+| 8 | **Session & Navigation** | `history`, `which`, `man` | ✅ 3 lessons |
+| 9 | **Pipes & Redirection** | `\|`, `>`, `>>`, `<`, `tee`, `xargs`, `sed`, `awk`, `tr` | 🔧 requires parser refactor (~10h) |
 
 ---
 
