@@ -114,6 +114,21 @@ async function syncOnLogin(userId, localProgress) {
 
 // ─── Gate logic ───────────────────────────────────────────────────────────────
 
+// Returns the gate type that blocks access to a section, or null if accessible.
+// allSectionIds: ordered array of section IDs from lessons.json
+function getGateForSection(sectionId, allSectionIds) {
+  const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
+  const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;
+
+  const regIdx  = allSectionIds.indexOf(GATE_REGISTRATION.sectionId);
+  const premIdx = allSectionIds.indexOf(GATE_PREMIUM.sectionId);
+  const sIdx    = allSectionIds.indexOf(sectionId);
+
+  if (premIdx !== -1 && sIdx > premIdx && !premium) return 'premium';
+  if (regIdx  !== -1 && sIdx > regIdx  && !signedIn) return 'registration';
+  return null;
+}
+
 function checkGate(sectionId, lessonId, isLastLessonInSection) {
   const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
   const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;

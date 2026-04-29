@@ -14,8 +14,7 @@ class LessonEngine {
     this.challengeSolved = false;
     this.panelLocked = false;
     this.progress = this._loadProgress();
-    this._collapsedSections = new Set();
-    this._sidebarInited = false;
+    this._expandedSectionId = undefined; // undefined = not yet initialised
 
     this.$out      = document.getElementById('terminal-output');
     this.$prompt   = document.getElementById('terminal-prompt');
@@ -111,47 +110,47 @@ class LessonEngine {
   // ─── Sidebar ──────────────────────────────────────────────────────────────
 
   _renderSidebar() {
-    // On first render, collapse every section except the active one
-    if (!this._sidebarInited) {
-      this._sidebarInited = true;
-      this.sections.forEach((s, si) => {
-        if (si !== this.sectionIdx) this._collapsedSections.add(s.id);
-      });
+    // Initialise expanded section on first render
+    if (this._expandedSectionId === undefined) {
+      this._expandedSectionId = this.sections[this.sectionIdx]?.id ?? null;
     }
-    // Active section is always expanded
-    this._collapsedSections.delete(this.sections[this.sectionIdx]?.id);
 
+    const sectionIds = this.sections.map(s => s.id);
     this.$sidebar.innerHTML = '';
 
     this.sections.forEach((section, si) => {
-      const isCollapsed = this._collapsedSections.has(section.id);
+      // A section is auth-locked when the user lacks the required tier
+      const authGate = (typeof getGateForSection === 'function')
+        ? getGateForSection(section.id, sectionIds)
+        : null;
+      const isLocked  = section.locked || authGate !== null;
+      const isExpanded = !isLocked && this._expandedSectionId === section.id;
+
       const wrap = document.createElement('div');
       wrap.className = 'mb-1 pt-1 border-t border-slate-800/60';
 
       const header = document.createElement('div');
-      header.className = `flex items-center gap-2 px-3 py-2 rounded ${section.locked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'}`;
-      const chevron = section.locked ? '<span class="text-slate-400 text-xs">🔒</span>'
-                                      : `<span class="text-slate-500 text-xs select-none">${isCollapsed ? '▸' : '▾'}</span>`;
+      header.className = `flex items-center gap-2 px-3 py-2 rounded ${isLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'}`;
+      const badge = isLocked
+        ? '<span class="text-slate-400 text-xs">🔒</span>'
+        : `<span class="text-slate-500 text-xs select-none">${isExpanded ? '▾' : '▸'}</span>`;
       header.innerHTML = `
         <span class="text-base leading-none">${section.icon || '📄'}</span>
-        <span class="text-sm font-semibold ${section.locked ? 'text-slate-500' : 'text-white'} flex-1 leading-tight">${section.title}</span>
-        ${chevron}
+        <span class="text-sm font-semibold ${isLocked ? 'text-slate-500' : 'text-white'} flex-1 leading-tight">${section.title}</span>
+        ${badge}
       `;
 
-      if (!section.locked) {
+      if (!isLocked) {
         header.addEventListener('click', () => {
-          if (this._collapsedSections.has(section.id)) {
-            this._collapsedSections.delete(section.id);
-          } else if (si !== this.sectionIdx) {
-            this._collapsedSections.add(section.id);
-          }
+          // Accordion: open this section (or close if already open)
+          this._expandedSectionId = (this._expandedSectionId === section.id) ? null : section.id;
           this._renderSidebar();
         });
       }
 
       wrap.appendChild(header);
 
-      if (!section.locked && section.lessons.length && !isCollapsed) {
+      if (!isLocked && isExpanded && section.lessons.length) {
         const list = document.createElement('div');
         list.className = 'ml-3 mt-0.5 space-y-px';
 
@@ -174,6 +173,7 @@ class LessonEngine {
             <span class="leading-tight">${lesson.title}</span>
           `;
           item.addEventListener('click', () => {
+            this._expandedSectionId = section.id;
             this.sectionIdx = si;
             this.lessonIdx = li;
             this.challengeIdx = 0;
@@ -402,6 +402,7 @@ class LessonEngine {
       if (gate === 'premium')      { showGateModal('premium');      return; }
 
       this.sectionIdx++;
+      this._expandedSectionId = this.sections[this.sectionIdx]?.id;
       this.lessonIdx = 0;
       this.challengeIdx = 0;
       this._loadLesson();
