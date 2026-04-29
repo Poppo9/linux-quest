@@ -227,26 +227,32 @@
 
   <!-- ── Auth modal ─────────────────────────────────────────────────────── -->
   <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl relative">
+      <button id="auth-close-x" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300 text-lg leading-none transition-colors">✕</button>
       <h2 id="auth-modal-title" class="text-lg font-bold text-white mb-1 font-terminal">Sign in to linux-quest</h2>
-      <p id="auth-modal-desc" class="text-sm text-slate-400 mb-6">We'll send a magic link to your email.</p>
+      <p id="auth-modal-desc" class="text-sm text-slate-400 mb-6">Welcome back.</p>
       <input id="auth-email" type="email" placeholder="you@example.com"
-        class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-4 focus:outline-none focus:border-green-400 transition-colors"
+        class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-3 focus:outline-none focus:border-green-400 transition-colors"
         autocomplete="email">
+      <input id="auth-password" type="password" placeholder="Password"
+        class="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm font-terminal mb-4 focus:outline-none focus:border-green-400 transition-colors"
+        autocomplete="current-password">
       <button id="auth-submit"
         class="w-full bg-green-400 hover:bg-green-300 text-slate-950 font-bold py-2.5 rounded-lg text-sm transition-colors">
-        Send magic link
+        Sign in
       </button>
       <p id="auth-message" class="hidden mt-4 text-sm text-center font-terminal"></p>
-      <button id="auth-cancel" class="mt-4 w-full text-slate-500 hover:text-slate-300 text-xs font-terminal transition-colors">
-        Cancel
-      </button>
+      <p class="mt-4 text-center text-xs text-slate-500">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button id="auth-toggle" class="text-green-400 hover:text-green-300 ml-1 font-terminal">Create one</button>
+      </p>
     </div>
   </div>
 
   <!-- ── Premium gate modal ─────────────────────────────────────────────── -->
   <div id="premium-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl text-center">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-8 w-full max-w-sm mx-4 shadow-2xl text-center relative">
+      <button id="premium-close-x" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300 text-lg leading-none transition-colors">✕</button>
       <div class="text-3xl mb-4">⚡</div>
       <h2 class="text-lg font-bold text-white mb-2 font-terminal">Premium Access</h2>
       <p class="text-sm text-slate-400 mb-6">Advanced sections require a Premium subscription.<br>Stripe integration coming soon.</p>
