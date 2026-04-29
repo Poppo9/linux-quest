@@ -1,6 +1,13 @@
 // Requires: window.supabase (CDN), SUPABASE_URL, SUPABASE_ANON_KEY (js/config.js)
+// Gracefully degrades to no-auth mode when config.js is missing
 
-const _client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let _client = null;
+try {
+  _client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  console.warn('Supabase config missing — running in offline/no-auth mode');
+}
+
 let _currentUser = null;
 let _isPremium   = false;
 
@@ -18,6 +25,7 @@ function isPremium()  { return _isPremium; }
 // ─── Auth actions ─────────────────────────────────────────────────────────────
 
 async function sendMagicLink(email) {
+  if (!_client) return { error: { message: 'Auth not configured' } };
   return await _client.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.origin }
@@ -27,12 +35,13 @@ async function sendMagicLink(email) {
 async function signOut() {
   _currentUser = null;
   _isPremium   = false;
-  await _client.auth.signOut();
+  if (_client) await _client.auth.signOut();
 }
 
 // ─── Progress sync ────────────────────────────────────────────────────────────
 
 async function loadRemoteProgress(userId) {
+  if (!_client) return {};
   const { data, error } = await _client
     .from('progress')
     .select('section_id, lesson_id, challenge_idx')
@@ -49,6 +58,7 @@ async function loadRemoteProgress(userId) {
 }
 
 async function pushProgressRow(userId, sectionId, lessonId, challengeIdx) {
+  if (!_client) return;
   return await _client.from('progress').upsert(
     { user_id: userId, section_id: sectionId, lesson_id: lessonId, challenge_idx: challengeIdx },
     { onConflict: 'user_id,section_id,lesson_id,challenge_idx' }
@@ -72,6 +82,7 @@ function _deepUnion(a, b) {
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
 async function loadProfile(userId) {
+  if (!_client) return false;
   const { data } = await _client
     .from('profiles')
     .select('is_premium')
@@ -133,6 +144,7 @@ function showGateModal(type) {
 // ─── Auth lifecycle ───────────────────────────────────────────────────────────
 
 function initAuth(onAuthChange) {
+  if (!_client) return;
   _client.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
