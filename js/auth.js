@@ -11,7 +11,7 @@ try {
 let _currentUser = null;
 let _isPremium   = false;
 
-const LS_PROGRESS_KEY = LS_PROGRESS_KEY;
+const LS_PROGRESS_KEY = 'lq-progress';
 
 // Gate positions — update these constants to move the access gates
 // Registration wall fires at the end of section 1 (navigating-directories)
