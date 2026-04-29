@@ -286,6 +286,7 @@ class VirtualTerminal {
 
   reset(cwd) {
     this.cwd = cwd || this.home;
+    this.fs  = this._buildFs();
   }
 
   getPrompt() {
@@ -436,7 +437,7 @@ class VirtualTerminal {
 
     let dstPath = this._resolvePath(args[1]);
     const dstNode = this._getNode(dstPath);
-    const srcName = srcPath.split('/').pop();
+    const srcName = this._splitPath(srcPath).name;
     if (dstNode && dstNode.type === 'dir') {
       dstPath = dstPath === '/' ? '/' + srcName : dstPath + '/' + srcName;
     }
@@ -482,7 +483,7 @@ class VirtualTerminal {
 
     let dstPath = this._resolvePath(paths[1]);
     const dstNode = this._getNode(dstPath);
-    const srcName = srcPath.split('/').pop();
+    const srcName = this._splitPath(srcPath).name;
     if (dstNode && dstNode.type === 'dir') {
       dstPath = dstPath === '/' ? '/' + srcName : dstPath + '/' + srcName;
     }
@@ -1127,10 +1128,10 @@ class VirtualTerminal {
     let summary = false;
     const paths = [];
     for (const arg of args) {
-      if (arg === '-h') human = true;
-      else if (arg === '-s') summary = true;
-      else if (arg === '-sh' || arg === '-hs') { human = true; summary = true; }
-      else paths.push(arg);
+      if (arg.startsWith('-') && /^-[hs]+$/.test(arg)) {
+        if (arg.includes('h')) human = true;
+        if (arg.includes('s')) summary = true;
+      } else paths.push(arg);
     }
     const target = paths[0] || '.';
     const fullPath = this._resolvePath(target);
@@ -1177,7 +1178,7 @@ class VirtualTerminal {
 
   _uname(args) {
     const all = args.includes('-a') || !args.length;
-    if (all || args.includes('-a')) {
+    if (all) {
       return { lines: ['Linux linux-quest 5.15.0-1 #1 SMP x86_64 GNU/Linux'] };
     }
     const parts = [];

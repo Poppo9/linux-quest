@@ -56,14 +56,14 @@ class LessonEngine {
 
   _loadProgress() {
     try {
-      return JSON.parse(localStorage.getItem('lq-progress') || '{}');
+      return JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
     } catch {
       return {};
     }
   }
 
   _saveProgress() {
-    localStorage.setItem('lq-progress', JSON.stringify(this.progress));
+    localStorage.setItem(LS_PROGRESS_KEY, JSON.stringify(this.progress));
   }
 
   _resumeProgress() {

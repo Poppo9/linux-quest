@@ -11,6 +11,8 @@ try {
 let _currentUser = null;
 let _isPremium   = false;
 
+const LS_PROGRESS_KEY = 'lq-progress';
+
 // Gate positions — update these constants to move the access gates
 // Registration wall fires at the end of section 1 (navigating-directories)
 // Premium wall fires at the end of section 3 (file-content)
@@ -24,18 +26,21 @@ function isPremium()  { return _isPremium; }
 
 // ─── Auth actions ─────────────────────────────────────────────────────────────
 
-async function sendMagicLink(email) {
+async function signUp(email, password) {
   if (!_client) return { error: { message: 'Auth not configured' } };
-  return await _client.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin }
-  });
+  return await _client.auth.signUp({ email, password });
+}
+
+async function signIn(email, password) {
+  if (!_client) return { error: { message: 'Auth not configured' } };
+  return await _client.auth.signInWithPassword({ email, password });
 }
 
 async function signOut() {
   _currentUser = null;
   _isPremium   = false;
   if (_client) await _client.auth.signOut();
+  window.location.reload();
 }
 
 // ─── Progress sync ────────────────────────────────────────────────────────────
@@ -66,7 +71,7 @@ async function pushProgressRow(userId, sectionId, lessonId, challengeIdx) {
 }
 
 function _deepUnion(a, b) {
-  const result = JSON.parse(JSON.stringify(a));
+  const result = structuredClone(a);
   for (const sId of Object.keys(b)) {
     if (!result[sId]) result[sId] = {};
     for (const lId of Object.keys(b[sId])) {
@@ -96,7 +101,7 @@ async function syncOnLogin(userId, localProgress) {
   await loadProfile(userId);
   const remote = await loadRemoteProgress(userId);
   const merged = _deepUnion(localProgress, remote);
-  localStorage.setItem('lq-progress', JSON.stringify(merged));
+  localStorage.setItem(LS_PROGRESS_KEY, JSON.stringify(merged));
 
   const pushes = [];
   for (const sId of Object.keys(merged)) {
@@ -117,8 +122,8 @@ async function syncOnLogin(userId, localProgress) {
 // Returns the gate type that blocks access to a section, or null if accessible.
 // allSectionIds: ordered array of section IDs from lessons.json
 function getGateForSection(sectionId, allSectionIds) {
-  const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
-  const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;
+  const signedIn = !!_currentUser;
+  const premium  = _isPremium;
 
   const regIdx  = allSectionIds.indexOf(GATE_REGISTRATION.sectionId);
   const premIdx = allSectionIds.indexOf(GATE_PREMIUM.sectionId);
@@ -130,8 +135,8 @@ function getGateForSection(sectionId, allSectionIds) {
 }
 
 function checkGate(sectionId, lessonId, isLastLessonInSection) {
-  const signedIn = document.getElementById('dbg-signed-in')?.checked || !!_currentUser;
-  const premium  = document.getElementById('dbg-premium')?.checked  || _isPremium;
+  const signedIn = !!_currentUser;
+  const premium  = _isPremium;
 
   // Registration wall: end of section 1
   if (!signedIn && sectionId === GATE_REGISTRATION.sectionId && isLastLessonInSection) {
@@ -144,13 +149,18 @@ function checkGate(sectionId, lessonId, isLastLessonInSection) {
   return null;
 }
 
+function _openAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.getElementById('auth-email').focus();
+}
+
 function showGateModal(type) {
   if (type === 'registration') {
-    document.getElementById('auth-modal-title').textContent = '🔒 Sign in to continue';
+    _setAuthMode('signup');
+    document.getElementById('auth-modal-title').textContent = '🔒 Create a free account to continue';
     document.getElementById('auth-modal-desc').textContent =
-      'You\'ve completed the first section! Create a free account to unlock File Operations and all sections beyond. [PLACEHOLDER — registration not yet wired]';
-    document.getElementById('auth-modal').classList.remove('hidden');
-    document.getElementById('auth-email').focus();
+      "You've completed the first section! Sign up to unlock File Operations and beyond.";
+    _openAuthModal();
   } else if (type === 'premium') {
     document.getElementById('premium-modal').classList.remove('hidden');
   }
@@ -163,10 +173,9 @@ function initAuth(onAuthChange) {
   _client.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
-      const local  = JSON.parse(localStorage.getItem('lq-progress') || '{}');
+      const local  = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
       const merged = await syncOnLogin(session.user.id, local);
       _updateNavUI(session.user);
-      // Close auth modal on successful login
       const modal = document.getElementById('auth-modal');
       if (modal) modal.classList.add('hidden');
       if (onAuthChange) onAuthChange('signed_in', session.user, merged);
@@ -179,9 +188,12 @@ function initAuth(onAuthChange) {
   });
 
   // Handle existing session on page load (covers magic link hash token too)
-  _client.auth.getSession().then(({ data }) => {
+  _client.auth.getSession().then(async ({ data }) => {
+    if (_currentUser) return; // already handled by onAuthStateChange
     if (data.session?.user) {
       _currentUser = data.session.user;
+      const local = JSON.parse(localStorage.getItem(LS_PROGRESS_KEY) || '{}');
+      await syncOnLogin(data.session.user.id, local);
       _updateNavUI(data.session.user);
     }
   });
@@ -195,11 +207,12 @@ function renderAuthUI() {
 
   if (_currentUser) {
     nav.innerHTML = `
-      <span class="text-xs font-terminal text-slate-400 hidden sm:inline truncate max-w-[160px]">${_currentUser.email}</span>
+      <span id="nav-user-email" class="text-xs font-terminal text-slate-400 hidden sm:inline"></span>
       <button id="auth-signout-btn"
         class="text-xs font-terminal text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded transition-colors">
         Sign out
       </button>`;
+    document.getElementById('nav-user-email').textContent = _currentUser.email;
     document.getElementById('auth-signout-btn').addEventListener('click', () => signOut());
   } else {
     nav.innerHTML = `
@@ -208,10 +221,8 @@ function renderAuthUI() {
         Sign in
       </button>`;
     document.getElementById('auth-signin-btn').addEventListener('click', () => {
-      document.getElementById('auth-modal-title').textContent = 'Sign in to linux-quest';
-      document.getElementById('auth-modal-desc').textContent = "We'll send a magic link to your email.";
-      document.getElementById('auth-modal').classList.remove('hidden');
-      document.getElementById('auth-email').focus();
+      _setAuthMode('signin');
+      _openAuthModal();
     });
   }
 
@@ -219,7 +230,6 @@ function renderAuthUI() {
 }
 
 function _updateNavUI(user) {
-  _currentUser = user;
   renderAuthUI();
 }
 
@@ -238,12 +248,21 @@ function _initModals() {
       if (e.target === authModal) closeAuthModal();
     });
 
-    document.getElementById('auth-cancel').addEventListener('click', closeAuthModal);
+    document.getElementById('auth-cancel')?.addEventListener('click', closeAuthModal);
     document.getElementById('auth-close-x').addEventListener('click', closeAuthModal);
 
-    document.getElementById('auth-submit').addEventListener('click', _handleMagicLinkSubmit);
+    document.getElementById('auth-submit').addEventListener('click', _handleAuthSubmit);
+
+    document.getElementById('auth-toggle').addEventListener('click', () => {
+      const current = document.getElementById('auth-modal').dataset.mode || 'signin';
+      _setAuthMode(current === 'signin' ? 'signup' : 'signin');
+    });
 
     document.getElementById('auth-email').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('auth-password').focus();
+    });
+
+    document.getElementById('auth-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('auth-submit').click();
     });
   }
@@ -274,28 +293,75 @@ function _initModals() {
   }
 }
 
-async function _handleMagicLinkSubmit() {
-  const emailEl = document.getElementById('auth-email');
-  const submit  = document.getElementById('auth-submit');
-  const msg     = document.getElementById('auth-message');
+function _setAuthMode(mode) {
+  const modal      = document.getElementById('auth-modal');
+  const title      = document.getElementById('auth-modal-title');
+  const desc       = document.getElementById('auth-modal-desc');
+  const submit     = document.getElementById('auth-submit');
+  const toggleText = document.getElementById('auth-toggle-text');
+  const toggleBtn  = document.getElementById('auth-toggle');
+  const msg        = document.getElementById('auth-message');
+  if (!modal) return;
 
-  const email = emailEl.value.trim();
-  if (!email) return;
+  modal.dataset.mode = mode;
+  if (msg) msg.className = 'hidden';
+
+  if (mode === 'signup') {
+    title.textContent      = 'Create your account';
+    desc.textContent       = 'Free forever for the first two sections.';
+    submit.textContent     = 'Create account';
+    toggleText.textContent = 'Already have an account?';
+    toggleBtn.textContent  = 'Sign in';
+    document.getElementById('auth-password').autocomplete = 'new-password';
+  } else {
+    title.textContent      = 'Sign in to linux-quest';
+    desc.textContent       = 'Welcome back.';
+    submit.textContent     = 'Sign in';
+    toggleText.textContent = "Don't have an account?";
+    toggleBtn.textContent  = 'Create one';
+    document.getElementById('auth-password').autocomplete = 'current-password';
+  }
+}
+
+async function _handleAuthSubmit() {
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const submit   = document.getElementById('auth-submit');
+  const msg      = document.getElementById('auth-message');
+  const mode     = document.getElementById('auth-modal').dataset.mode || 'signin';
+
+  if (!email || !password) return;
 
   submit.disabled    = true;
-  submit.textContent = 'Sending…';
+  submit.textContent = mode === 'signup' ? 'Creating…' : 'Signing in…';
 
-  const { error } = await sendMagicLink(email);
+  if (mode === 'signup' && password.length < 8) {
+    msg.textContent = 'Password must be at least 8 characters.';
+    msg.className   = 'mt-4 text-sm text-center font-terminal text-red-400';
+    msg.classList.remove('hidden');
+    setTimeout(() => { submit.disabled = false; submit.textContent = 'Create account'; }, 1000);
+    return;
+  }
 
-  submit.disabled    = false;
-  submit.textContent = 'Send magic link';
+  const { data, error } = mode === 'signup'
+    ? await signUp(email, password)
+    : await signIn(email, password);
 
   if (error) {
-    msg.textContent = 'Error: ' + error.message;
+    msg.textContent = error.message;
     msg.className   = 'mt-4 text-sm text-center font-terminal text-red-400';
-  } else {
-    msg.textContent = 'Check your email for the magic link!';
-    msg.className   = 'mt-4 text-sm text-center font-terminal text-green-400';
+    msg.classList.remove('hidden');
+    setTimeout(() => { submit.disabled = false; submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in'; }, 3000);
+    return;
   }
-  msg.classList.remove('hidden');
+
+  submit.disabled    = false;
+  submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in';
+
+  if (mode === 'signup' && data?.user && !data?.session) {
+    msg.textContent = 'Check your email to confirm your account.';
+    msg.className   = 'mt-4 text-sm text-center font-terminal text-green-400';
+    msg.classList.remove('hidden');
+  }
+  // If session exists (email confirmation off), SIGNED_IN fires automatically
 }
