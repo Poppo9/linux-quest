@@ -17,11 +17,3 @@
   to = "/index.html"
   status = 200
 
-[context.production]
-  command = ""
-
-[context.deploy-preview]
-  command = ""
-
-[context.branch-deploy]
-  command = ""
