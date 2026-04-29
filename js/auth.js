@@ -14,6 +14,21 @@ let _providerToken = null; // GitHub OAuth token — present only in the SIGNED_
 
 const LS_PROGRESS_KEY = 'lq-progress';
 
+// Pre-populate _currentUser synchronously from Supabase's localStorage entry so
+// renderAuthUI() shows the correct state immediately on page load, without waiting
+// for the async INITIAL_SESSION event (which would cause a "Sign in" flash).
+// onAuthStateChange remains authoritative and overwrites this if the session is stale.
+;(function () {
+  try {
+    const ref = (typeof SUPABASE_URL !== 'undefined') &&
+                SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1];
+    if (!ref) return;
+    const raw = localStorage.getItem('sb-' + ref + '-auth-token');
+    const stored = raw && JSON.parse(raw);
+    if (stored?.user) _currentUser = stored.user;
+  } catch (_) { /* ignore parse errors */ }
+})();
+
 // Sections 1-3 are free. Section 4+ require a GitHub star on Poppo9/linux-quest.
 const GATE_STAR = { sectionId: 'file-content' };
 
