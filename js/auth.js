@@ -210,7 +210,7 @@ function renderAuthUI() {
       <span id="nav-user-email" class="text-xs font-terminal text-slate-400 hidden sm:inline"></span>
       <button id="auth-signout-btn"
         class="text-xs font-terminal text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded transition-colors">
-        Sign out
+        Log out
       </button>`;
     document.getElementById('nav-user-email').textContent = _currentUser.email;
     document.getElementById('auth-signout-btn').addEventListener('click', () => signOut());

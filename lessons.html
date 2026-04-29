@@ -55,10 +55,12 @@
             class="font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0">
             ◀ Prev
           </button>
-          <div class="flex-1 min-w-0 text-center">
-            <h1 id="lesson-title" class="text-sm font-semibold text-slate-100 leading-tight truncate"></h1>
-            <p id="lesson-concept" class="text-slate-400 text-xs mt-0.5 italic truncate"></p>
-            <span id="challenge-progress" class="text-xs font-terminal text-slate-400 select-none"></span>
+          <div class="flex-1 min-w-0 flex items-center gap-4">
+            <div class="min-w-0">
+              <h1 id="lesson-title" class="text-sm font-semibold text-slate-100 leading-tight truncate"></h1>
+              <p id="lesson-concept" class="text-slate-400 text-xs mt-0.5 italic truncate"></p>
+            </div>
+            <span id="challenge-progress" class="text-xs font-terminal text-slate-400 select-none ml-auto flex-shrink-0"></span>
           </div>
           <button id="next-btn"
             class="font-terminal text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-300 flex-shrink-0">

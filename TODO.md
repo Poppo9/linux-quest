@@ -1,5 +1,13 @@
 # TODO — linux-quest
 
+## Completato (storico recente)
+
+- [x] Rinominati tutti i titoli delle lezioni in `data/lessons.json` (stile descrittivo, niente comandi tra parentesi)
+- [x] Aggiunta sezione "What you'll learn" (`#course-overview`) in `index.html` con griglia 8 sezioni
+- [x] Rimosso link "Lessons" dal footer di `index.html`
+- [x] Bottone auth rinominato da "Sign out" a "Log out"
+- [x] Header lezioni: titolo + concept allineati a sinistra, challenge-progress a destra
+
 ## Prossimo: Stripe (pagamenti premium)
 
 - [ ] Creare account Stripe e prodotto "linux-quest Premium"

@@ -139,7 +139,7 @@ Supabase email + password auth. The module exposes global functions used by both
 - `getUser()` / `isPremium()` — sync accessors for current session state
 - `signUp(email, password)` / `signIn(email, password)` / `signOut()` — auth actions; `signOut()` triggers `window.location.reload()`
 - `initAuth(onAuthChange)` — registers `onAuthStateChange` listener; call once per page. On `SIGNED_IN` runs `syncOnLogin` (merge local + remote progress, load profile) and fires `onAuthChange('signed_in', user, mergedProgress)`.
-- `renderAuthUI()` — injects "Sign in" or "email + Sign out" into `#nav-auth`; wires modals on first call (idempotent via `data-wired` flag).
+- `renderAuthUI()` — injects "Sign in" or "email + Log out" into `#nav-auth`; wires modals on first call (idempotent via `data-wired` flag).
 - `checkGate(sectionId, lessonId, isLastLessonInSection)` — returns `null`, `'registration'`, or `'premium'`
 - `showGateModal(type)` — shows auth modal (with gate-specific copy) or premium modal
 - `pushProgressRow(userId, sId, lId, idx)` — upserts a single row in Supabase `progress` table
@@ -189,6 +189,17 @@ To add a new lesson section: add an entry to `data/lessons.json` with `"locked":
 
 To add a new command to the terminal simulator: add one entry to `this._commands` in the constructor, then implement `_<command>(args)`. No other changes needed — `execute()`, `help`, and tab completion all auto-discover from the registry. Add files/dirs to `_buildFs()` if the command needs test data; include a `content: [...]` array for commands like `cat`, `grep`, `sort` to work on them.
 
+## index.html sections
+
+In order:
+1. **Header** — `linux-quest` logo + auth nav (Sign in / Log out)
+2. **Hero** — headline, subheading, two CTA buttons
+3. **Demo terminal** — animated bash session that loops
+4. **How it works** — 3-step numbered cards
+5. **What you'll learn** (`#course-overview`) — 4-column grid of all 8 sections with their lesson titles
+6. **Final CTA** — banner with "Start Learning for Free →" button
+7. **Footer** — copyright only (no nav links)
+
 ## Design
 
 Dark palette: `slate-950` background, `slate-800` borders, `green-400` accent (terminal green).
@@ -211,6 +222,8 @@ All 8 sections are implemented and unlocked. 40 lessons, 84 challenges total.
 | Permissions & Ownership | 6 | 12 |
 | System Information | 5 | 10 |
 | Session & Navigation | 3 | 6 |
+
+**Lesson title convention:** titles are descriptive plain English — no command names in parentheses (e.g. "Displaying file contents", not "Displaying files (cat)"). Keep this style when adding new lessons.
 
 Virtual filesystem notable files (used by lessons):
 - `/home/user/notes.txt`, `notes_v2.txt` — for grep, diff

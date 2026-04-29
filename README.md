@@ -6,13 +6,13 @@ Each lesson explains a command in detail, then drops you into a simulated termin
 
 ## Structure
 
-- `index.html` — landing page
+- `index.html` — landing page (hero, demo terminal, "What you'll learn" course overview, CTA)
 - `lessons.html` — interactive lessons with simulated terminal
 - `css/styles.css` — animations, terminal styles, font imports
 - `js/terminal.js` — `VirtualTerminal` class (simulated filesystem + 43 commands)
 - `js/lessons.js` — `LessonEngine` class (lesson loading, validation, progress, sidebar)
 - `js/auth.js` — Supabase auth, progress sync, tier gating
-- `data/lessons.json` — all lesson/challenge content
+- `data/lessons.json` — all lesson/challenge content (lesson titles are descriptive, no command names in parens)
 
 ---
 
