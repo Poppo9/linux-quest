@@ -220,8 +220,6 @@ function initAuth(onAuthChange) {
     // INITIAL_SESSION fires on page load when a session already exists (Supabase v2)
     // SIGNED_IN fires after a fresh login or OAuth redirect
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-      if (_currentUser?.id === session.user.id) return; // already handled
-
       _currentUser   = session.user;
       _providerToken = session.provider_token || null;
 
