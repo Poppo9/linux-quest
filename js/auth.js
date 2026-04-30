@@ -11,6 +11,7 @@ try {
 let _currentUser   = null;
 let _isPremium     = false;
 let _providerToken = null; // GitHub OAuth token — present only in the SIGNED_IN session, not after refresh
+let _verifying     = false; // prevents concurrent verifyGithubStar calls
 
 const LS_PROGRESS_KEY = 'lq-progress';
 
@@ -51,7 +52,9 @@ async function signOut() {
   _currentUser   = null;
   _isPremium     = false;
   _providerToken = null;
-  if (_client) await _client.auth.signOut();
+  try {
+    if (_client) await _client.auth.signOut();
+  } catch (_) {}
   window.location.reload();
 }
 
@@ -61,9 +64,16 @@ async function signOut() {
 // Reloads the page on success so the sidebar re-renders with all sections unlocked.
 async function verifyGithubStar(githubToken) {
   if (!_client) return false;
+  if (_verifying) return false;
+  _verifying = true;
 
   const btn = document.getElementById('premium-verify-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
+  const _resetVerify = () => {
+    _verifying = false;
+    if (btn) { btn.disabled = false; btn.textContent = "I've starred it — verify ✓"; }
+  };
 
   try {
     const { data: { session } } = await _client.auth.getSession();
@@ -73,7 +83,10 @@ async function verifyGithubStar(githubToken) {
       // No provider_token available — re-trigger OAuth to get a fresh one.
       // SIGNED_IN will fire again with provider_token and auto-verify.
       if (btn) btn.textContent = 'Redirecting to GitHub…';
+      _verifying = false;
       await signInWithGitHub();
+      // If we're still here the redirect didn't navigate away (e.g. popup blocked) — reset.
+      _resetVerify();
       return false;
     }
 
@@ -81,7 +94,7 @@ async function verifyGithubStar(githubToken) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${session?.access_token ?? ''}`,
       },
       body: JSON.stringify({ github_token: token }),
     });
@@ -90,6 +103,7 @@ async function verifyGithubStar(githubToken) {
 
     if (json.starred) {
       _isPremium = true;
+      _verifying = false;
       if (btn) { btn.textContent = '✓ Verified! Reloading…'; }
       window.location.reload();
       return true;
@@ -98,14 +112,14 @@ async function verifyGithubStar(githubToken) {
     if (btn) {
       btn.disabled    = false;
       btn.textContent = 'Not starred yet — try again';
-      setTimeout(() => {
-        if (btn) btn.textContent = "I've starred it — verify ✓";
-      }, 3000);
+      setTimeout(_resetVerify, 3000);
+    } else {
+      _resetVerify();
     }
     return false;
   } catch (err) {
     console.error('Star verification error:', err);
-    if (btn) { btn.disabled = false; btn.textContent = "I've starred it — verify ✓"; }
+    _resetVerify();
     return false;
   }
 }
@@ -251,6 +265,17 @@ function renderAuthUI() {
   const nav = document.getElementById('nav-auth');
   if (!nav) return;
 
+  // Wire click delegation once — survives innerHTML replacements
+  if (!nav.dataset.navWired) {
+    nav.dataset.navWired = '1';
+    nav.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.id === 'auth-signout-btn') signOut();
+      if (btn.id === 'auth-signin-btn')  _openAuthModal();
+    });
+  }
+
   if (_currentUser) {
     const displayName = _currentUser.user_metadata?.user_name || _currentUser.email || '';
     nav.innerHTML = `
@@ -264,7 +289,6 @@ function renderAuthUI() {
         Log out
       </button>`;
     document.getElementById('nav-user-email').textContent = displayName;
-    document.getElementById('auth-signout-btn').addEventListener('click', () => signOut());
   } else {
     nav.innerHTML = `
       <button id="auth-signin-btn"
@@ -275,7 +299,6 @@ function renderAuthUI() {
                hover:border-slate-400 dark:hover:border-slate-500">
         Sign in
       </button>`;
-    document.getElementById('auth-signin-btn').addEventListener('click', () => _openAuthModal());
   }
 
   _initModals();
