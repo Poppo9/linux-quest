@@ -6,6 +6,9 @@
   NODE_VERSION = "20"
   # SUPABASE_SERVICE_ROLE_KEY must be set in Netlify dashboard (used by unlock-premium function)
 
+[functions]
+  directory = "netlify/functions"
+
 [[headers]]
   for = "/*"
   [headers.values]
