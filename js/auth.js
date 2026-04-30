@@ -8,9 +8,9 @@ try {
   console.warn('Supabase config missing — running in offline/no-auth mode');
 }
 
-let _currentUser   = null;
-let _isPremium     = false;
-let _providerToken = null; // GitHub OAuth token — present only in the SIGNED_IN session, not after refresh
+let _currentUser  = null;
+let _isPremium    = false;
+let _onAuthChange = null;
 
 const LS_PROGRESS_KEY = 'lq-progress';
 
@@ -214,7 +214,24 @@ function showGateModal(type) {
 
 // ─── Auth lifecycle ───────────────────────────────────────────────────────────
 
+async function unlockPremium() {
+  _isPremium = true;
+  document.getElementById('premium-modal')?.classList.add('hidden');
+  if (_client && _currentUser) {
+    const { data } = await _client.auth.getSession();
+    const jwt = data.session?.access_token;
+    if (jwt) {
+      fetch('/.netlify/functions/unlock-premium', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${jwt}` }
+      }).catch(() => {});
+    }
+  }
+  if (_onAuthChange) _onAuthChange('premium_unlocked', _currentUser, null);
+}
+
 function initAuth(onAuthChange) {
+  _onAuthChange = onAuthChange;
   if (!_client) return;
   _client.auth.onAuthStateChange(async (event, session) => {
     // INITIAL_SESSION fires on page load when a session already exists (Supabase v2)
@@ -312,7 +329,7 @@ function _initModals() {
 
     document.getElementById('premium-close')?.addEventListener('click', closePremiumModal);
     document.getElementById('premium-close-x')?.addEventListener('click', closePremiumModal);
-    document.getElementById('premium-verify-btn')?.addEventListener('click', () => verifyGithubStar());
+    document.getElementById('premium-verify-btn')?.addEventListener('click', unlockPremium);
   }
 
   if (!document.body.dataset.escWired) {
