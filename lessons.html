@@ -3,7 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lessons | linux-quest</title>
+  <title>linux-quest — Interactive Linux Terminal Challenges</title>
+  <meta name="description" content="Practice 84 hands-on Linux challenges directly in your browser. Learn bash commands, file operations, grep, permissions and more — no setup required.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.linux-quest.com/lessons.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.linux-quest.com/lessons.html">
+  <meta property="og:title" content="linux-quest — Interactive Linux Terminal Challenges">
+  <meta property="og:description" content="Practice 84 hands-on Linux challenges directly in your browser. Learn bash, file operations, grep, permissions and more.">
+  <meta property="og:image" content="https://www.linux-quest.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="linux-quest">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="linux-quest — Interactive Linux Terminal Challenges">
+  <meta name="twitter:description" content="Practice 84 hands-on Linux challenges directly in your browser.">
+  <meta name="twitter:image" content="https://www.linux-quest.com/og-image.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" href="/favicon.ico">
 
   <!-- Apply saved theme before Tailwind renders — prevents flash -->
   <script>
@@ -374,17 +398,35 @@
         Sign in to linux-quest
       </h2>
       <p id="auth-modal-desc" class="text-sm mb-6 text-slate-500 dark:text-slate-400">
-        Sign in with GitHub to save your progress.
+        Welcome back.
       </p>
-      <button id="auth-github-btn"
-        class="w-full flex items-center justify-center gap-3 font-bold py-2.5 rounded-lg text-sm transition-colors
-               bg-slate-900 hover:bg-slate-700 dark:bg-white dark:hover:bg-slate-100
-               text-white dark:text-slate-900 cursor-pointer">
-        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-        </svg>
-        Continue with GitHub
+      <input id="auth-email" type="email" placeholder="Email" autocomplete="email"
+        class="w-full mb-3 px-3 py-2.5 rounded-lg text-sm font-terminal
+               bg-slate-50 dark:bg-slate-800
+               border border-slate-300 dark:border-slate-600
+               text-slate-900 dark:text-slate-100
+               placeholder-slate-400 dark:placeholder-slate-500
+               focus:outline-none focus:ring-2 focus:ring-green-500/50">
+      <input id="auth-password" type="password" placeholder="Password" autocomplete="current-password"
+        class="w-full mb-4 px-3 py-2.5 rounded-lg text-sm font-terminal
+               bg-slate-50 dark:bg-slate-800
+               border border-slate-300 dark:border-slate-600
+               text-slate-900 dark:text-slate-100
+               placeholder-slate-400 dark:placeholder-slate-500
+               focus:outline-none focus:ring-2 focus:ring-green-500/50">
+      <button id="auth-submit"
+        class="w-full py-2.5 rounded-lg text-sm font-terminal font-semibold transition-colors cursor-pointer
+               bg-green-600 hover:bg-green-500 text-white border border-green-700 hover:border-green-600 mb-4">
+        Sign in
       </button>
+      <p id="auth-message" class="hidden"></p>
+      <p class="text-xs text-center text-slate-500 dark:text-slate-400">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button id="auth-toggle"
+          class="ml-1 text-green-600 dark:text-green-400 hover:underline cursor-pointer font-terminal">
+          Create one
+        </button>
+      </p>
     </div>
   </div>
 
@@ -401,8 +443,9 @@
       <div class="text-4xl mb-4">⭐</div>
       <h2 class="text-lg font-bold mb-2 font-terminal text-slate-900 dark:text-white">Unlock the full course</h2>
       <p class="text-sm mb-5 text-slate-500 dark:text-slate-400">
-        Star <strong class="text-slate-700 dark:text-slate-300">linux-quest</strong> on GitHub to unlock
-        Search, Text Processing, Permissions and beyond — completely free.
+        This course is free. If you're finding it useful, consider starring
+        <strong class="text-slate-700 dark:text-slate-300">linux-quest</strong> on GitHub —
+        it helps others discover it. No verification happens: we trust you.
       </p>
       <a href="https://github.com/Poppo9/linux-quest" target="_blank" rel="noopener noreferrer"
         class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-terminal
@@ -412,13 +455,16 @@
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
         </svg>
-        Star on GitHub
+        Star on GitHub →
       </a>
       <button id="premium-verify-btn"
         class="w-full py-2.5 rounded-lg text-sm font-terminal transition-colors cursor-pointer
                bg-green-600 hover:bg-green-500 text-white border border-green-700 hover:border-green-600">
-        Continua ✓
+        I've starred it — unlock full access ✓
       </button>
+      <p class="mt-3 text-xs text-slate-400 dark:text-slate-500">
+        Honor system only. Click even if you haven't — no one checks.
+      </p>
     </div>
   </div>
 
