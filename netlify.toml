@@ -1,18 +1,10 @@
 [build]
   publish = "."
-  command = "printf 'const SUPABASE_URL=\"%s\";\nconst SUPABASE_ANON_KEY=\"%s\";\n' \"$SUPABASE_URL\" \"$SUPABASE_ANON_KEY\" > js/config.js"
-
-[build.environment]
-  NODE_VERSION = "20"
-  # SUPABASE_SERVICE_ROLE_KEY must be set in Netlify dashboard (used by unlock-premium function)
-
-[functions]
-  directory = "netlify/functions"
 
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.tailwindcss.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; connect-src 'self' https://*.supabase.co; img-src 'self' data:; frame-ancestors 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
 
