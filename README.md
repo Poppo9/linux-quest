@@ -1,33 +1,57 @@
 # linux-quest
 
-A gamified, interactive Linux command tutorial — learn bash by doing, not by reading.
+**Learn Linux commands interactively — a gamified bash tutorial for beginners and developers.**
 
-Each lesson explains a command in detail, then drops you into a simulated terminal to practice it.
+linux-quest is an open-source, browser-based Linux terminal simulator.
+Each lesson teaches a real bash command in depth, then drops you into a simulated terminal to practice it hands-on — no VM, no setup, no cost.
 
-**Access tiers:**
-- **Free (no account):** first 3 sections (Navigating Directories, File Operations, Reading File Content)
-- **Full access:** star [Poppo9/linux-quest](https://github.com/Poppo9/linux-quest) on GitHub and sign in — completely free
-
-Progress is saved in your browser and synced to the cloud when signed in.
-
-## Structure
-
-- `index.html` — landing page (hero, demo terminal, "What you'll learn" course overview, CTA)
-- `lessons.html` — interactive lessons with simulated terminal
-- `css/styles.css` — animations, terminal styles, font imports
-- `js/terminal.js` — `VirtualTerminal` class (simulated filesystem + 43 commands)
-- `js/lessons.js` — `LessonEngine` class (lesson loading, validation, progress, sidebar)
-- `js/auth.js` — GitHub OAuth via Supabase, star verification, progress sync, tier gating
-- `netlify/functions/verify-star.js` — checks GitHub star → unlocks premium in DB
-- `data/lessons.json` — all lesson/challenge content (lesson titles are descriptive, no command names in parens)
+🔗 **Live demo:** [linux-quest.com](https://linux-quest.com/)
 
 ---
 
-## Roadmap
+## What is linux-quest?
 
-### In scope — linux-quest
+linux-quest is a gamified Linux command-line tutorial that teaches bash by doing, not by reading.
+It covers essential Linux commands across 8 sections — from basic navigation to file permissions, text processing, and system information — all inside an in-browser simulated terminal.
 
-| # | Section | Key commands | Status |
+**Who is it for?**
+- Beginners with zero Linux experience
+- Developers who want to sharpen their command-line skills
+- Students preparing for Linux/Unix exams or DevOps roles
+
+---
+
+## Access & Pricing
+
+| Tier | Details |
+|------|---------|
+| **Free** | Full access from day one — no payment required |
+| **Support** | If linux-quest helped you, consider starring [Poppo9/linux-quest](https://github.com/Poppo9/linux-quest) on GitHub |
+
+Progress is automatically saved in your browser's local cache.
+
+---
+
+## Project Structure
+
+| File / Directory | Description |
+|-----------------|-------------|
+| `index.html` | Landing page — hero section, demo terminal, course overview ("What you'll learn"), call to action |
+| `lessons.html` | Interactive lesson pages with simulated terminal |
+| `css/styles.css` | Animations, terminal UI styles, font imports |
+| `js/terminal.js` | `VirtualTerminal` class — simulated filesystem supporting 43 bash commands |
+| `js/lessons.js` | `LessonEngine` class — lesson loading, answer validation, progress tracking, sidebar navigation |
+| `js/auth.js` | GitHub OAuth via Supabase, star verification, progress sync, tier gating |
+| `netlify/functions/verify-star.js` | Serverless function: verifies GitHub star → unlocks premium tier in database |
+| `data/lessons.json` | All lesson and challenge content (lesson titles are descriptive; no command names in parentheses) |
+
+---
+
+## Curriculum & Roadmap
+
+### ✅ In scope — linux-quest
+
+| # | Section | Key Commands | Status |
 |---|---------|--------------|--------|
 | 1 | **Navigating Directories** | `pwd`, `ls`, `ll`, `cd`, absolute/relative paths | ✅ 7 lessons |
 | 2 | **File Operations** | `touch`, `mkdir`, `cp`, `mv`, `rm`, `rmdir` | ✅ 6 lessons |
@@ -37,34 +61,49 @@ Progress is saved in your browser and synced to the cloud when signed in.
 | 6 | **Permissions & Ownership** | `chmod`, `chown`, `stat`, `file`, `du`, `df` | ✅ 6 lessons |
 | 7 | **System Information** | `uname`, `hostname`, `date`, `ps`, `env` | ✅ 5 lessons |
 | 8 | **Session & Navigation** | `history`, `which`, `man` | ✅ 3 lessons |
-| 9 | **Pipes & Redirection** | `\|`, `>`, `>>`, `<`, `tee`, `xargs`, `sed`, `awk`, `tr` | 🔧 requires parser refactor (~10h) |
+| 9 | **Pipes & Redirection** | `\|`, `>`, `>>`, `<`, `tee`, `xargs`, `sed`, `awk`, `tr` | 🔧 Requires parser refactor (~10h) |
+
+### 🗺️ Out of scope — planned as separate projects
+
+These topics require architectures or UIs too complex for this webapp and are better suited as standalone tools.
+
+| Project | Commands / Concepts | Reason |
+|---------|--------------------|-----------------------------------------|
+| **vim-quest** (or similar) | `vim`, `nano` | Complex modal UI — needs a dedicated app (see vim-hero.com) |
+| **shell-quest** | `if`, `for`, `while`, `case`, functions, `source`, variables | Requires a full script interpreter |
+| **git-quest** | `git init/add/commit/push/branch/merge/rebase` | Rich enough to be a standalone app |
+| **net-quest** | `ssh`, `curl`, `wget`, `ping`, `ifconfig`, `netstat` | Requires backend or network simulation |
+| **sysadmin-quest** | `apt/brew/pip`, `systemctl`, `cron`, `sudo`, `jobs/bg/fg/kill` | Requires persistent package index and process table simulation |
 
 ---
 
-### Out of scope — progetti futuri separati
+## Running Locally
 
-Questi topic richiedono architetture o UI troppo complesse per questa webapp.
-
-| Progetto | Comandi / Concetti | Motivo |
-|----------|--------------------|--------|
-| **vim-quest** (o simile) | `vim`, `nano` | UI modale complessa — app dedicata (vedi vim-hero.com) |
-| **shell-quest** | `if`, `for`, `while`, `case`, funzioni, `source`, variabili | Richiede un interprete di script |
-| **git-quest** | `git init/add/commit/push/branch/merge/rebase` | Ricco abbastanza per un'app autonoma |
-| **net-quest** | `ssh`, `curl`, `wget`, `ping`, `ifconfig`, `netstat` | Richiede backend o simulazione di rete |
-| **sysadmin-quest** | `apt/brew/pip`, `systemctl`, `cron`, `sudo`, `jobs/bg/fg/kill` | Richiede simulazione di package index e process table persistente |
-
----
-
-## Running locally
+A local server is required because lessons are fetched from `data/lessons.json` via the Fetch API.
 
 ```bash
 python -m http.server 8080
-# open http://localhost:8080
+# Then open http://localhost:8080 in your browser
 ```
 
-A local server is required because lessons are loaded via `fetch('data/lessons.json')`.
+---
 
-## Sources of inspiration
+## Tech Stack
 
-- Gamification as a static webapp: https://www.vim-hero.com
-- Command reference: https://github.com/RehanSaeed/Bash-Cheat-Sheet
+- **Frontend:** Vanilla HTML, CSS, JavaScript (no frameworks)
+- **Auth & DB:** Supabase (GitHub OAuth, progress sync)
+- **Serverless:** Netlify Functions (star verification)
+- **Hosting:** Netlify
+
+---
+
+## Inspiration & References
+
+- Gamified static webapp approach: [vim-hero.com](https://www.vim-hero.com)
+- Bash command reference: [RehanSaeed/Bash-Cheat-Sheet](https://github.com/RehanSaeed/Bash-Cheat-Sheet)
+
+---
+
+## Keywords
+
+`linux tutorial` · `bash commands` · `learn linux` · `interactive terminal` · `command line practice` · `bash for beginners` · `linux simulator` · `gamified learning` · `DevOps basics` · `open source linux course`
